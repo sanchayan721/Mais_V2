@@ -4,7 +4,7 @@ import universe.Universe;
 public class App {
 
     public static void main(String[] args) throws ControllerException {
-        Universe universe = new Universe(3);
+        Universe universe = new Universe(6);
         universe.startUniverse();
     }
 }

@@ -4,8 +4,6 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.ContainerID;
 import jade.core.Location;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -17,10 +15,6 @@ import jade.wrapper.ControllerException;
 import universe.Universe;
 import universe.containers.AuxiliaryContainer;
 import universe.laws.Constants;
-import universe.laws.Movement;
-
-import java.io.Console;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -64,12 +58,14 @@ public class MacrophageAgent extends Agent {
         @Override
         public void action() {
 
+            Object[] arguments = getArguments();
+            ContainerController initialContainerController = (ContainerController) arguments[0]; 
             try {
                 doWait(PHAGOCYTE_SLEEP_TIME);
-                ContainerController destinationContainer = Universe.CONTAINER_CONTROLLER_HASH_MAP.get("Container-0");
+                //ContainerController destinationContainer = Universe.CONTAINER_CONTROLLER_HASH_MAP.get("Container-0");
                 try {
                     ContainerID dest = new ContainerID();
-                    dest.setName(destinationContainer.getContainerName());
+                    dest.setName(initialContainerController.getContainerName());
                     myAgent.doMove(dest);
                 } catch (Exception exception) {
                     exception.getStackTrace();
@@ -160,72 +156,32 @@ public class MacrophageAgent extends Agent {
 
         @Override
         public void action() {
-            
+
             System.out.println(this);
             ArrayList<Integer> updateSet = new ArrayList<>();
             for (Character s : dnaToBeVerified.toCharArray()) {
                 updateSet.add(Character.getNumericValue(s));
             }
-            
+
             int[] cellDNA = updateSet.stream().mapToInt(i -> i).toArray();
-            
-            if(!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
+
+            if (!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
                 repairDNA();
-                /* killTheVirus(myAgent); */
+                killTheVirus(myAgent);
             }
         }
 
     }
 
-    /*
-     * private class ConsultingWithMemoryAgent extends OneShotBehaviour{
-     * 
-     * @Override
-     * public void action() {
-     * if(dnaToBeVerified != null && cellPresentInContainer){
-     * ACLMessage messageToMemory = new ACLMessage(ACLMessage.INFORM);
-     * messageToMemory.addReceiver(new AID("memory", AID.ISLOCALNAME));
-     * messageToMemory.setConversationId("DNA_Verification_Channel");
-     * messageToMemory.setContent(dnaToBeVerified);
-     * send(messageToMemory);
-     * }
-     * doWait(PHAGOCYTE_MEMORY_COMMUNICATION_TIME);
-     * MessageTemplate messageTemplate =
-     * MessageTemplate.MatchConversationId("DNA_Verification_Channel");
-     * ACLMessage message = receive(messageTemplate);
-     * if (message != null){
-     * String decisionFromMemoryAgent = message.getContent();
-     * if(decisionFromMemoryAgent.equals("virusPresent")) {
-     * repairDNA();
-     * if(AuxiliaryContainer.isThereAVirus(this.getAgent().getContainerController())
-     * ){
-     * killTheVirus();
-     * System.out.println(ANSI_GREEN + "Macrophage" + ANSI_RESET +
-     * ": \tMemory is right. Virus Present");
-     * }else{
-     * // System.out.println(ANSI_GREEN + "Macrophage" + ANSI_RESET +
-     * ": \tMemory is wrong. No virus Here");
-     * }
-     * }else if(decisionFromMemoryAgent.equals("LooksGood")){
-     * if(AuxiliaryContainer.isThereAVirus(this.getAgent().getContainerController())
-     * ){
-     * //System.out.println(ANSI_GREEN + "Macrophage" + ANSI_RESET +
-     * ": \tMemory is wrong. Virus Present");
-     * }
-     * }
-     * }
-     * }
-     * }
-     */
     private void killTheVirus(Agent myAgent) {
-        ContainerController thisContainer = myAgent.getContainerController();
-        /* String targetVirus = "virus.".concat(thisContainer.getContainerName()); */
-        System.out.println(thisContainer);
-        /* AgentController virusAgentController = thisContainer.getAgent(targetVirus);
-        System.out.println(virusAgentController);
-        System.out
-                .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET);
-        virusAgentController.kill(); */
+        try {
+            String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
+            ContainerController thisContainer = myAgent.getContainerController();
+            AgentController virusAgentController = thisContainer.getAgent(targetVirus);
+            virusAgentController.kill();
+            System.out
+                    .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET);
+        } catch (ControllerException e) {}
     }
 
     private void repairDNA() {
@@ -233,7 +189,6 @@ public class MacrophageAgent extends Agent {
 
         try {
             String targetCell = "cell.".concat(String.valueOf(this.getContainerController().getContainerName()));
-            // System.out.println(targetCell);
             messageToCell.addReceiver(new AID(targetCell, AID.ISLOCALNAME)); // receiver
             messageToCell.setConversationId("DNA_Repair_Channel"); // conversation id
             String messageContent = "repair";

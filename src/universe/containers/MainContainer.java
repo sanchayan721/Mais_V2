@@ -24,11 +24,12 @@ public class MainContainer {
 
     }
 
-    public void createMacrophageAndMemoryAgents(ContainerController containerController){
+    public void createMacrophageAgent(ContainerController containerController, int id, ContainerController iContainerController){
         try {
-            AgentController memoryAgentController = containerController.createNewAgent("memory", "universe.agents.MemoryAgent", new Object[]{});
-            AgentController MacrophageAgentController = containerController.createNewAgent("Macrophage", "universe.agents.MacrophageAgent", new Object[]{});
-            memoryAgentController.start();
+            String macrophageName = "Macrophage-".concat(String.valueOf(id));
+            AgentController MacrophageAgentController = containerController.createNewAgent(
+                macrophageName, "universe.agents.MacrophageAgent", new Object[]{ iContainerController }
+            );
             MacrophageAgentController.start();
 
         } catch (StaleProxyException exception) {

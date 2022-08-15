@@ -55,8 +55,13 @@ public class Universe {
         // Initiator Agent
         mainContainer.createInitiatorAgent(mainContainerController, CONTROLLER_GRID_MAP);
 
-        // Create Memory Agent and Macrophage Agent in Main Container
-        mainContainer.createMacrophageAndMemoryAgents(mainContainerController);
+        // Create Macrophage Agents Main Container
+
+        for (int i = 0; i <= (int) GRID_SIZE * 50/100 ; i++) {
+            int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
+            ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP.get("Container-".concat(String.valueOf(randInt)));
+            mainContainer.createMacrophageAgent(mainContainerController, i, iContainerController);
+        }
 
         // Creating First Virus Agent on A Random Container
         int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
