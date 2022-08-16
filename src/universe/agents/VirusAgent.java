@@ -1,17 +1,8 @@
 package universe.agents;
-
-import jade.content.lang.Codec.CodecException;
-import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Location;
-import jade.core.NameClashException;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.SequentialBehaviour;
-import jade.domain.FIPANames;
-import jade.domain.JADEAgentManagement.JADEManagementOntology;
-import jade.domain.JADEAgentManagement.QueryAgentsOnLocation;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -37,25 +28,6 @@ public class VirusAgent extends Agent {
     protected void setup() {
         addBehaviour(new CheckingIfCellAliveInContainer());
     }
-
-    /*
-     * private SequentialBehaviour QueuedVirusBehaviour() {
-     * SequentialBehaviour virusBehaviour = new SequentialBehaviour() {
-     * public int onEnd() {
-     * reset();
-     * myAgent.addBehaviour(this);
-     * return super.onEnd();
-     * }
-     * };
-     * virusBehaviour.addSubBehaviour(new CheckingIfCellAliveInContainer());
-     * virusBehaviour.addSubBehaviour(new CommunicateWithCell());
-     * virusBehaviour.addSubBehaviour(new AskingCellForNeighbours());
-     * virusBehaviour.addSubBehaviour(new CloningBehaviour());
-     * virusBehaviour.addSubBehaviour(new KillingACell());
-     * 
-     * return virusBehaviour;
-     * }
-     */
 
     private class CheckingIfCellAliveInContainer extends OneShotBehaviour {
         @Override
@@ -117,7 +89,6 @@ public class VirusAgent extends Agent {
                     myAgent.addBehaviour(new CloningBehaviour());
                 }
             } catch (ControllerException | UnreadableException e) {
-                e.printStackTrace();
             }
 
         }
@@ -132,8 +103,7 @@ public class VirusAgent extends Agent {
             try {
                 System.out.println("Hi...! Virus at ".concat(
                         myAgent.getContainerController().getContainerName() + " and places I will Clone to are"));
-            } catch (ControllerException e) {
-                e.printStackTrace();
+            } catch (ControllerException ignored) {
             }
             /* System.out.println(cloningLocations); */
             System.out.println("**************************************************");
