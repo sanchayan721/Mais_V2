@@ -210,15 +210,6 @@ public class CellAgent extends Agent {
         }
     }
 
-    /* private class HealthyMutation extends CyclicBehaviour {
-        @Override
-        public void action() {
-            doWait(Constants.CELL_MUTATION_PERIOD);
-            int randomPosition = (int) (Math.random() * (myDNA.length));
-            updateDNA(new int[] { randomPosition });
-        }
-    } */
-
     private class SpawningVirus extends CyclicBehaviour {
         @Override
         public void action() {
