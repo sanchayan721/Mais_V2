@@ -1,32 +1,178 @@
 package universe.agents;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
 import jade.core.Agent;
+import jade.core.Location;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.lang.acl.ACLMessage;
+import universe.containers.AuxiliaryContainer;
+import universe.laws.Constants;
+import jade.core.AID;
+import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
+import jade.wrapper.ControllerException;
 
 public class DendriticCellAgent extends Agent{
         
-    private int[] viralCodon;
-    
-    public void setViralCodon(int[] codon) {
-        this.viralCodon = codon;
+    private String dnaToBeVerified = null;
+
+    Boolean virusFound = false;
+    int[] VIRUS_IDENTIFYING_CODON = null;
+
+    public void setVirusIdentifynigCodon (int[] differences) {
+        this.VIRUS_IDENTIFYING_CODON = differences;
     }
 
-
-    /* Setup Method */
+    Boolean cellPresentInContainer = true;
+    ArrayList<Location> possiblePlacesToMove = new ArrayList<>();
+    private void setPossiblePlacesToMove(ArrayList<Location> locs) {
+        this.possiblePlacesToMove = locs;
+    }
 
     @Override
     protected void setup() {
-        /* Behaviours of Dendritic Cell */
+        
+        /* SequentialBehaviour dendriticCellBehaviour = new SequentialBehaviour() {
+            public int onEnd() {
+                reset();
+                myAgent.addBehaviour(this);
+                return super.onEnd();
+            }
+        };
+
+        dendriticCellBehaviour.addSubBehaviour(new AskCellForNeighbours());
+        dendriticCellBehaviour.addSubBehaviour(new AskingCellForIdentity());
+        dendriticCellBehaviour.addSubBehaviour(new DetectingVirus());
+        dendriticCellBehaviour.addSubBehaviour(new MovingToNewCell());
+
+        addBehaviour(dendriticCellBehaviour); */
+
+        addBehaviour(new AskCellForNeighbours());
+
     }
 
-    private class StartSearchingForVirus extends OneShotBehaviour {
+    private class AskCellForNeighbours extends OneShotBehaviour {
+        String conversationID = "Tell_About_Neighbours";
+        String questionForCell = "neighbour_list";
+
+        @Override
+        public void action() {
+            if (AuxiliaryContainer.isCellAlive(myAgent.getContainerController())) {
+                try {
+                    ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                    message.setConversationId(conversationID);
+                    String targetCell = "cell."
+                            .concat(String.valueOf(myAgent.getContainerController().getContainerName()));
+                    message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
+                    message.setContent(questionForCell);
+                    send(message);
+                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
+                    ACLMessage receivedMessage = receive(reply);
+                    if (receivedMessage != null) {
+                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+                        setPossiblePlacesToMove(locations);
+                    }
+                } catch (ControllerException | UnreadableException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                cellPresentInContainer = false;
+            }
+            myAgent.addBehaviour(new AskingCellForIdentity());
+        }
+    }
+
+    private class AskingCellForIdentity extends OneShotBehaviour {
+        @Override
+        public void action() {
+
+            /* System.out.println(this); */
+            if (AuxiliaryContainer.isCellAlive(this.getAgent().getContainerController())) {
+
+                ACLMessage messageToCell = new ACLMessage(ACLMessage.INFORM); // Message type
+                try {
+                    String targetCell = "cell."
+                            .concat(String.valueOf(this.getAgent().getContainerController().getContainerName()));
+                    messageToCell.addReceiver(new AID(targetCell, AID.ISLOCALNAME)); // receiver
+                    messageToCell.setConversationId("Signature_Verification_Channel"); // conversation id
+                    String messageContent = "Verify_Identity";
+                    messageToCell.setContent(messageContent);
+                    send(messageToCell);
+                } catch (ControllerException e) {
+                    e.printStackTrace();
+                }
+                doWait(200);
+                MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
+                ACLMessage messageFromCell = receive(messageTemplate);
+                if (messageFromCell != null) {
+                    dnaToBeVerified = messageFromCell.getContent();
+                }
+            } else {
+                cellPresentInContainer = false;
+            }
+
+            myAgent.addBehaviour(new DetectingVirus());
+        }
+    }
+
+    private class DetectingVirus extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+
+            /* System.out.println(this); */
+            ArrayList<Integer> updateSet = new ArrayList<>();
+            for (Character s : dnaToBeVerified.toCharArray()) {
+                updateSet.add(Character.getNumericValue(s));
+            }
+
+            int[] cellDNA = updateSet.stream().mapToInt(i -> i).toArray();
+
+            if (!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
+                virusFound = true;
+                
+                int[] differences = new int[]{};
+                int codonLocation = 0;
+                
+                for (int index = 0; index < cellDNA.length; index++) {
+                    if(cellDNA[index] != Constants.CELL_IDENTIFYING_DNA[index]) {
+                        cellDNA[codonLocation] = index;
+                        codonLocation++;
+                    }
+                }
+                setVirusIdentifynigCodon(differences);
+                myAgent.addBehaviour(new MovingTowardsLymphNode());
+            } else {
+                myAgent.addBehaviour(new MovingToNewCell());
+            }
+        }
+
+    }
+    
+    private class MovingToNewCell extends OneShotBehaviour {
+        @Override
+        public void action() {
+            if (possiblePlacesToMove.size() > 0) {
+                Location currentLocation = myAgent.here();
+                Random rand = new Random();
+                Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
+                if (!locationToMove.equals(currentLocation)) {
+                    doWait(500);
+                    doMove(locationToMove);
+                }
+            }
+            myAgent.addBehaviour(new AskCellForNeighbours());
+        }
+    }
+
+    private class MovingTowardsLymphNode extends OneShotBehaviour {
 
         @Override
         public void action() {
             
-            
         }
-
     }
-
 }

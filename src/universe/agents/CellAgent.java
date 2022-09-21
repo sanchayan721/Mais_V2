@@ -52,7 +52,6 @@ public class CellAgent extends Agent {
         addBehaviour(new ListenToVirus());
         addBehaviour(new SpawningVirus());
         addBehaviour(new DNARepairBehaviour());
-        addBehaviour(new CellRegenarationBehaviour());
     }
 
     private class sendingOwnLocationToInitiator extends CyclicBehaviour {
@@ -270,17 +269,5 @@ public class CellAgent extends Agent {
                 this.myDNA[flipLocation] = 0;
             }
         }
-    }
-
-    private class CellRegenarationBehaviour extends CyclicBehaviour {
-
-        @Override
-        public void action() {
-            /* doWait(universe.laws.Constants.CELL_REGENERATION_TIME_AVG);
-            for (Location neighbourLocation : neighboursLocations) {
-                System.out.println(neighbourLocation);
-            } */
-        }
-        
     }
 }

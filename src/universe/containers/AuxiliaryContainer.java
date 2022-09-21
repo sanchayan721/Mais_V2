@@ -41,6 +41,22 @@ public class AuxiliaryContainer {
         }
     }
 
+    public void createDendriticCell(ContainerController containerController){
+        try {
+
+            AgentController dendriticCellController = containerController.createNewAgent(
+                    "dendriticcell.".concat(containerController.getContainerName()),
+                    "universe.agents.DendriticCellAgent",
+                    new Object[]{}
+            );
+
+            dendriticCellController.start();
+
+        }catch(Exception exception){
+            exception.getStackTrace();
+        }
+    }
+
     public static Boolean isCellAlive(ContainerController auxiliaryContainerController){
         try {
             auxiliaryContainerController.getAgent("cell.".concat(auxiliaryContainerController.getContainerName()));

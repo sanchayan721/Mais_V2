@@ -16,7 +16,7 @@ public class Constants {
     /* Virus Constants */
     public static final int VIRUS_CELL_COMMUNICATION_TIME = 1000;
     public static final int VIRUS_REPLICATION_TIME = 10000; //Seconds
-    public static final int VIRUS_REPLICATION_FACTOR = 2;
+    public static final int VIRUS_REPLICATION_FACTOR = 3;
     public static final int KILL_THE_CELL_AFTERWARD = 2000;
     public static final int CELL_REGENERATION_TIME_AVG = 4000;
     public static final String VIRUS_SIGNATURE = "10,25,20,22";

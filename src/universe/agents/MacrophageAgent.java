@@ -5,14 +5,12 @@ import jade.core.Agent;
 import jade.core.ContainerID;
 import jade.core.Location;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.SequentialBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
-import universe.Universe;
 import universe.containers.AuxiliaryContainer;
 import universe.laws.Constants;
 import java.util.ArrayList;
@@ -35,23 +33,6 @@ public class MacrophageAgent extends Agent {
     protected void setup() {
 
         addBehaviour(new GoingToInitialPosition());
-
-        // Putting Behaviours in a queue
-        SequentialBehaviour afterLandingBehaviour = new SequentialBehaviour() {
-            public int onEnd() {
-                reset();
-                myAgent.addBehaviour(this);
-                return super.onEnd();
-            }
-        };
-        afterLandingBehaviour.addSubBehaviour(new AskCellForNeighbours());
-        afterLandingBehaviour.addSubBehaviour(new AskingCellForIdentity());
-        /* afterLandingBehaviour.addSubBehaviour(new ConsultingWithMemoryAgent()); */
-        afterLandingBehaviour.addSubBehaviour(new DetectingAndKillingVirus());
-        afterLandingBehaviour.addSubBehaviour(new MovingToNewCell());
-
-        // Launching the Behaviours
-        addBehaviour(afterLandingBehaviour);
     }
 
     private class GoingToInitialPosition extends OneShotBehaviour {
@@ -73,6 +54,7 @@ public class MacrophageAgent extends Agent {
             } catch (Exception exception) {
                 exception.getStackTrace();
             }
+            myAgent.addBehaviour(new AskCellForNeighbours());
         }
     }
 
@@ -103,21 +85,7 @@ public class MacrophageAgent extends Agent {
             } else {
                 cellPresentInContainer = false;
             }
-        }
-    }
-
-    private class MovingToNewCell extends OneShotBehaviour {
-        @Override
-        public void action() {
-            if (possiblePlacesToMove.size() > 0) {
-                Location currentLocation = myAgent.here();
-                Random rand = new Random();
-                Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
-                if (!locationToMove.equals(currentLocation)) {
-                    doWait(PHAGOCYTE_SLEEP_TIME);
-                    doMove(locationToMove);
-                }
-            }
+            myAgent.addBehaviour(new AskingCellForIdentity());
         }
     }
 
@@ -125,7 +93,7 @@ public class MacrophageAgent extends Agent {
         @Override
         public void action() {
 
-            System.out.println(this);
+            /* System.out.println(this); */
             if (AuxiliaryContainer.isCellAlive(this.getAgent().getContainerController())) {
 
                 ACLMessage messageToCell = new ACLMessage(ACLMessage.INFORM); // Message type
@@ -149,6 +117,7 @@ public class MacrophageAgent extends Agent {
             } else {
                 cellPresentInContainer = false;
             }
+            myAgent.addBehaviour(new DetectingAndKillingVirus());
         }
     }
 
@@ -157,7 +126,7 @@ public class MacrophageAgent extends Agent {
         @Override
         public void action() {
 
-            System.out.println(this);
+            /* System.out.println(this); */
             ArrayList<Integer> updateSet = new ArrayList<>();
             for (Character s : dnaToBeVerified.toCharArray()) {
                 updateSet.add(Character.getNumericValue(s));
@@ -169,10 +138,11 @@ public class MacrophageAgent extends Agent {
                 repairDNA();
                 killTheVirus(myAgent);
             }
+            myAgent.addBehaviour(new MovingToNewCell());
         }
 
+        
     }
-
     private void killTheVirus(Agent myAgent) {
         try {
             String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
@@ -181,7 +151,7 @@ public class MacrophageAgent extends Agent {
             virusAgentController.kill();
             System.out
                     .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET);
-        } catch (ControllerException e) {}
+        } catch (ControllerException e) { return; }
     }
 
     private void repairDNA() {
@@ -199,4 +169,21 @@ public class MacrophageAgent extends Agent {
             e.printStackTrace();
         }
     }
+
+    private class MovingToNewCell extends OneShotBehaviour {
+        @Override
+        public void action() {
+            if (possiblePlacesToMove.size() > 0) {
+                Location currentLocation = myAgent.here();
+                Random rand = new Random();
+                Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
+                if (!locationToMove.equals(currentLocation)) {
+                    doWait(PHAGOCYTE_SLEEP_TIME);
+                    doMove(locationToMove);
+                }
+            }
+            myAgent.addBehaviour(new AskCellForNeighbours());
+        }
+    }
+
 }

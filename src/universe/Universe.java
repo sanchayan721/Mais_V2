@@ -51,13 +51,13 @@ public class Universe {
         for (ContainerController auxiliaryContainerController : CONTROLLER_GRID_MAP.keySet()) {
             auxiliaryContainer.createCell(auxiliaryContainerController);
         }
-
+        
+        auxiliaryContainer.createDendriticCell(CONTAINER_CONTROLLER_HASH_MAP.get("Container-0"));
         // Initiator Agent
         mainContainer.createInitiatorAgent(mainContainerController, CONTROLLER_GRID_MAP);
 
         // Create Macrophage Agents Main Container
-
-        for (int i = 0; i <= (int) GRID_SIZE * 50/100 ; i++) {
+        for (int i = 0; i <= (int) GRID_SIZE * 30/100 ; i++) {
             int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
             ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP.get("Container-".concat(String.valueOf(randInt)));
             mainContainer.createMacrophageAgent(mainContainerController, i, iContainerController);
