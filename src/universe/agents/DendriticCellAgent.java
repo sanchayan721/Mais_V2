@@ -32,6 +32,11 @@ public class DendriticCellAgent extends Agent{
         this.possiblePlacesToMove = locs;
     }
 
+    Boolean reachedVessel = false;
+    public void setReachedVessel() {
+        this.reachedVessel = true;
+    }
+
     @Override
     protected void setup() {
         
@@ -144,7 +149,7 @@ public class DendriticCellAgent extends Agent{
                     }
                 }
                 setVirusIdentifynigCodon(differences);
-                myAgent.addBehaviour(new MovingTowardsLymphNode());
+                myAgent.addBehaviour(new AskingCellAboutLymphVessel());
             } else {
                 myAgent.addBehaviour(new MovingToNewCell());
             }
@@ -153,6 +158,7 @@ public class DendriticCellAgent extends Agent{
     }
     
     private class MovingToNewCell extends OneShotBehaviour {
+
         @Override
         public void action() {
             if (possiblePlacesToMove.size() > 0) {
@@ -168,7 +174,15 @@ public class DendriticCellAgent extends Agent{
         }
     }
 
-    private class MovingTowardsLymphNode extends OneShotBehaviour {
+    private class AskingCellAboutLymphVessel extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            
+        }
+    }
+
+    private class MovingTowardsVessel extends OneShotBehaviour {
 
         @Override
         public void action() {

@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class MainContainer {
 
-    public AgentContainer createMainContainer(){
+    public AgentContainer createMainContainer() {
 
         Runtime runtime = Runtime.instance();
         Properties properties = new ExtendedProperties();
@@ -24,12 +24,12 @@ public class MainContainer {
 
     }
 
-    public void createMacrophageAgent(ContainerController containerController, int id, ContainerController iContainerController){
+    public void createMacrophageAgent(ContainerController containerController, int id,
+            ContainerController iContainerController) {
         try {
             String macrophageName = "Macrophage-".concat(String.valueOf(id));
             AgentController MacrophageAgentController = containerController.createNewAgent(
-                macrophageName, "universe.agents.MacrophageAgent", new Object[]{ iContainerController }
-            );
+                    macrophageName, "universe.agents.MacrophageAgent", new Object[] { iContainerController });
             MacrophageAgentController.start();
 
         } catch (StaleProxyException exception) {
@@ -37,13 +37,17 @@ public class MainContainer {
         }
 
     }
-    public void createInitiatorAgent (ContainerController containerController, HashMap<ContainerController, int[]> containerControllerGridMap) {
+
+    public void createInitiatorAgent(
+            ContainerController containerController,
+            HashMap<ContainerController, int[]> containerControllerGridMap,
+            HashMap<String, ContainerController> lymphPathMap,
+            HashMap<String, int[]> lymphCoordinateMap) {
         try {
             AgentController initiatorAgentController = containerController.createNewAgent(
                     "initiator",
                     "universe.agents.InitiatorAgent",
-                    new Object[]{ containerControllerGridMap }
-            );
+                    new Object[] { containerControllerGridMap, lymphPathMap, lymphCoordinateMap });
             initiatorAgentController.start();
         } catch (StaleProxyException exception) {
             exception.printStackTrace();

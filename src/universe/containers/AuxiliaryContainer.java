@@ -1,13 +1,11 @@
 package universe.containers;
 
-import jade.core.Location;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 
-import java.util.ArrayList;
 
 public class AuxiliaryContainer {
 
@@ -30,7 +28,7 @@ public class AuxiliaryContainer {
     public void createCell(ContainerController containerController){
         try {
 
-            AgentController cellController = containerController.createNewAgent(
+            containerController.createNewAgent(
                     "cell.".concat(containerController.getContainerName()),
                     "universe.agents.CellAgent",
                     new Object[]{}
@@ -54,6 +52,20 @@ public class AuxiliaryContainer {
 
         }catch(Exception exception){
             exception.getStackTrace();
+        }
+    }
+
+    public void createLymphVessel( ContainerController containerController ) {
+        try {
+            
+            containerController.createNewAgent(
+                "lymphVessel.".concat(containerController.getContainerName()),
+                "universe.agents.LymphVesselAgent",
+                new Object[]{}
+            );
+
+        } catch (Exception e) {
+            e.getStackTrace();
         }
     }
 

@@ -12,6 +12,8 @@ public class Universe {
     int UNIVERSE_SIZE;
     public static HashMap<String, ContainerController> CONTAINER_CONTROLLER_HASH_MAP;
     public static HashMap<ContainerController, int[]> CONTROLLER_GRID_MAP;
+    public static HashMap<String, ContainerController> LYMPH_PATH_MAP;
+    public static HashMap<String, int[]> LYMPH_COORDINATE_MAP;
 
     public Universe(int grid_size) {
         GRID_SIZE = grid_size;
@@ -26,6 +28,9 @@ public class Universe {
         // Creating MainContainer
         CONTAINER_CONTROLLER_HASH_MAP = new HashMap<>();
         CONTROLLER_GRID_MAP = new HashMap<>();
+        LYMPH_PATH_MAP = new HashMap<>();
+        LYMPH_COORDINATE_MAP = new HashMap<>();
+
         MainContainer mainContainer = new MainContainer();
         ContainerController mainContainerController = mainContainer.createMainContainer();
 
@@ -39,7 +44,18 @@ public class Universe {
                 ContainerController containerController = auxiliaryContainer.CreateAuxiliaryContainer(index);
                 try {
                     CONTAINER_CONTROLLER_HASH_MAP.put(containerController.getContainerName(), containerController);
-                    CONTROLLER_GRID_MAP.put(containerController, new int[] { index_x, index_y });
+
+                    int[] coordinate = new int[] { index_x, index_y };
+                    CONTROLLER_GRID_MAP.put(containerController, coordinate);
+
+                    /* Diagonal grids are chosen to be lymph nodes */
+                    if (index_x == index_y) {
+                        String lymphContainerName = "lymphVesselContainer-"
+                                .concat(String.valueOf(index_x) + String.valueOf(index_y));
+                        LYMPH_PATH_MAP.put(lymphContainerName, containerController);
+                        LYMPH_COORDINATE_MAP.put(lymphContainerName, new int[] { index_x, index_y });
+                    }
+
                 } catch (Exception exception) {
                     exception.getStackTrace();
                 }
@@ -51,16 +67,31 @@ public class Universe {
         for (ContainerController auxiliaryContainerController : CONTROLLER_GRID_MAP.keySet()) {
             auxiliaryContainer.createCell(auxiliaryContainerController);
         }
-        
+
+        /* Create the lymph vessel */
+        for (String vesselContainer : LYMPH_PATH_MAP.keySet()) {
+            ContainerController lymphVesselContainerController = LYMPH_PATH_MAP.get(vesselContainer);
+            auxiliaryContainer.createLymphVessel(lymphVesselContainerController);
+        }
+
+        /* Create Dendritic Cell(s) */
         auxiliaryContainer.createDendriticCell(CONTAINER_CONTROLLER_HASH_MAP.get("Container-0"));
+
         // Initiator Agent
-        mainContainer.createInitiatorAgent(mainContainerController, CONTROLLER_GRID_MAP);
+        mainContainer.createInitiatorAgent(
+                mainContainerController,
+                CONTROLLER_GRID_MAP,
+                LYMPH_PATH_MAP,
+                LYMPH_COORDINATE_MAP);
 
         // Create Macrophage Agents Main Container
-        for (int i = 0; i <= (int) GRID_SIZE * 30/100 ; i++) {
+        for (int i = 0; i <= GRID_SIZE * Constants.PERCENTAGE_OF_MACROPHAGE; i++) {
+
             int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
-            ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP.get("Container-".concat(String.valueOf(randInt)));
+            ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP
+                    .get("Container-".concat(String.valueOf(randInt)));
             mainContainer.createMacrophageAgent(mainContainerController, i, iContainerController);
+
         }
 
         // Creating First Virus Agent on A Random Container
@@ -80,6 +111,7 @@ public class Universe {
         }
     }
 
+    /* Stopping the simulation */
     public void stop() throws StaleProxyException {
         for (ContainerController auxiliaryContainerController : CONTROLLER_GRID_MAP.keySet()) {
             auxiliaryContainerController.kill();
