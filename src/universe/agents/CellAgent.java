@@ -40,14 +40,22 @@ public class CellAgent extends Agent {
         return replicaDNA;
     }
 
+    Boolean ifLymphVesselPresent = false;
+
+    public void setLymphVesselPresent(Boolean status) {
+        this.ifLymphVesselPresent = status;
+    }
+
     /* Setup method */
     @Override
     protected void setup() {
         // Adding the behaviours
         addBehaviour(new sendingOwnLocationToInitiator());
         addBehaviour(new settingNeighboursLocationWithInitiator());
+        addBehaviour(new checkingIFaVessel());
 
-        addBehaviour(new ListenToMacrophage());
+        addBehaviour(new ListenToMacrophageAndDendriticCell());
+        addBehaviour(new TellDendriticCellAboutLymphVessel());
         addBehaviour(new TellNeighboursLocation());
         addBehaviour(new ListenToVirus());
         addBehaviour(new SpawningVirus());
@@ -98,7 +106,8 @@ public class CellAgent extends Agent {
                     MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage messageReceived = myAgent.receive(messageTemplate);
                     if (messageReceived != null) {
-                        ArrayList<Location> neighbourLocation = (ArrayList<Location>) messageReceived.getContentObject();
+                        ArrayList<Location> neighbourLocation = (ArrayList<Location>) messageReceived
+                                .getContentObject();
                         setNeighboursLocations(neighbourLocation);
                     }
                 } catch (UnreadableException | ControllerException e) {
@@ -108,7 +117,24 @@ public class CellAgent extends Agent {
         }
     }
 
-    private class ListenToMacrophage extends CyclicBehaviour {
+    private class checkingIFaVessel extends CyclicBehaviour {
+        String conversationID = "vessel_cell_connection_channel";
+
+        @Override
+        public void action() {
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage messageReceived = myAgent.receive(messageTemplate);
+
+            if (messageReceived != null) {
+                Boolean status = Boolean.parseBoolean(messageReceived.getContent());
+                setLymphVesselPresent(status);
+                myAgent.removeBehaviour(this);
+            }
+        }
+
+    }
+
+    private class ListenToMacrophageAndDendriticCell extends CyclicBehaviour {
         @Override
         public void action() {
             MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
@@ -163,6 +189,32 @@ public class CellAgent extends Agent {
         }
     }
 
+    private class TellDendriticCellAboutLymphVessel extends CyclicBehaviour {
+
+        String conversationID = "vessel_confirmation_channel";
+        String matchQuery = "tell_if_you_are_a_vessel";
+
+        @Override
+        public void action() {
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage msg = receive(messageTemplate);
+
+            if (msg != null) {
+                String messageContent = msg.getContent();
+                if (messageContent.equals(matchQuery)) {
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.INFORM);
+                    reply.setConversationId(conversationID);
+                    reply.setSender(msg.getSender());
+                    reply.setContent(String.valueOf(ifLymphVesselPresent));
+                    System.out.println(reply);
+                    send(reply);
+                }
+            }
+        }
+        
+    }
+
     private class ListenToVirus extends CyclicBehaviour {
 
         @Override
@@ -215,17 +267,17 @@ public class CellAgent extends Agent {
 
             String expectedMessage = "Spwan_A_New_Virus";
             String conversationID = "Spwan_A_New_Virus_Channel";
-            
+
             MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
             ACLMessage msg = receive(messageTemplate);
-            
+
             if (msg != null) {
-                
+
                 String messageContent = msg.getContent();
                 if (messageContent.equals(expectedMessage)) {
 
                     try {
-                        if(!isVirusAlreadyPresent()) {
+                        if (!isVirusAlreadyPresent()) {
                             spwanAVirus();
                             /* myAgent.removeBehaviour(this); */
                         } else {
@@ -239,7 +291,7 @@ public class CellAgent extends Agent {
             }
         }
 
-        private Boolean isVirusAlreadyPresent () {
+        private Boolean isVirusAlreadyPresent() {
             Boolean virusPresent = false;
             ContainerController thisContainerController = myAgent.getContainerController();
             try {

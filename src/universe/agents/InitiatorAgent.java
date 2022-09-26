@@ -80,6 +80,7 @@ public class InitiatorAgent extends Agent {
                 myAgent.removeBehaviour(this);
             } else {
                 for (ContainerController cellContainerController : containerControllerGridMap.keySet()) {
+
                     try {
                         String agentName = "cell.".concat(cellContainerController.getContainerName());
                         AgentController cellAgentController = cellContainerController.getAgent(agentName);
@@ -130,6 +131,7 @@ public class InitiatorAgent extends Agent {
                     e.printStackTrace();
                 }
             }
+            myAgent.addBehaviour(new TellingCellTheyAreVessel());
             myAgent.removeBehaviour(this);
         }
 
@@ -144,6 +146,48 @@ public class InitiatorAgent extends Agent {
             }
             return neighbourLocationList;
         }
+    }
+
+    private class TellingCellTheyAreVessel extends OneShotBehaviour {
+
+        String conversationID = "vessel_cell_connection_channel";
+
+        @Override
+        public void action() {
+            for (ContainerController cellContainerController : containerControllerGridMap.keySet()) {
+
+                String agentName;
+                try {
+                    agentName = "cell.".concat(cellContainerController.getContainerName());
+                    AID agentID = new AID(agentName, AID.ISLOCALNAME);
+
+                    ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                    message.setConversationId(conversationID);
+                    message.addReceiver(agentID);
+                    if (checkIfCellisaVessel(cellContainerController)) {
+                        message.setContent("true");
+                    } else {
+                        message.setContent("false");
+                    }
+                    myAgent.send(message);
+                } catch (ControllerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private Boolean checkIfCellisaVessel(ContainerController targetContainerController) {
+            Boolean isAVessel = false;
+
+            for (String vessel : lymphVesselHashMap.keySet()) {
+                if (!isAVessel && lymphVesselHashMap.get(vessel) == targetContainerController) {
+                    isAVessel = true;
+                }
+            }
+
+            return isAVessel;
+        }
+
     }
 
     /* Lymph Vessel Initializing Behaviours */

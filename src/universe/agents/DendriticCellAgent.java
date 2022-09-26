@@ -15,45 +15,54 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.ControllerException;
 
-public class DendriticCellAgent extends Agent{
-        
+public class DendriticCellAgent extends Agent {
+
     private String dnaToBeVerified = null;
 
     Boolean virusFound = false;
+
+    public void setVirusFound(Boolean status) {
+        this.virusFound = status;
+    }
+
     int[] VIRUS_IDENTIFYING_CODON = null;
 
-    public void setVirusIdentifynigCodon (int[] differences) {
+    public void setVirusIdentifynigCodon(int[] differences) {
         this.VIRUS_IDENTIFYING_CODON = differences;
     }
 
     Boolean cellPresentInContainer = true;
     ArrayList<Location> possiblePlacesToMove = new ArrayList<>();
+
     private void setPossiblePlacesToMove(ArrayList<Location> locs) {
         this.possiblePlacesToMove = locs;
     }
 
     Boolean reachedVessel = false;
-    public void setReachedVessel() {
-        this.reachedVessel = true;
+
+    public void setReachedVessel(Boolean status) {
+        this.reachedVessel = status;
     }
 
     @Override
     protected void setup() {
-        
-        /* SequentialBehaviour dendriticCellBehaviour = new SequentialBehaviour() {
-            public int onEnd() {
-                reset();
-                myAgent.addBehaviour(this);
-                return super.onEnd();
-            }
-        };
 
-        dendriticCellBehaviour.addSubBehaviour(new AskCellForNeighbours());
-        dendriticCellBehaviour.addSubBehaviour(new AskingCellForIdentity());
-        dendriticCellBehaviour.addSubBehaviour(new DetectingVirus());
-        dendriticCellBehaviour.addSubBehaviour(new MovingToNewCell());
-
-        addBehaviour(dendriticCellBehaviour); */
+        /*
+         * SequentialBehaviour dendriticCellBehaviour = new SequentialBehaviour() {
+         * public int onEnd() {
+         * reset();
+         * myAgent.addBehaviour(this);
+         * return super.onEnd();
+         * }
+         * };
+         * 
+         * dendriticCellBehaviour.addSubBehaviour(new AskCellForNeighbours());
+         * dendriticCellBehaviour.addSubBehaviour(new AskingCellForIdentity());
+         * dendriticCellBehaviour.addSubBehaviour(new DetectingVirus());
+         * dendriticCellBehaviour.addSubBehaviour(new MovingToNewCell());
+         * 
+         * addBehaviour(dendriticCellBehaviour);
+         */
 
         addBehaviour(new AskCellForNeighbours());
 
@@ -86,7 +95,12 @@ public class DendriticCellAgent extends Agent{
             } else {
                 cellPresentInContainer = false;
             }
-            myAgent.addBehaviour(new AskingCellForIdentity());
+
+            if (virusFound) {
+                myAgent.addBehaviour(new AskingCellAboutLymphVessel());
+            } else {
+                myAgent.addBehaviour(new AskingCellForIdentity());
+            }
         }
     }
 
@@ -137,13 +151,13 @@ public class DendriticCellAgent extends Agent{
             int[] cellDNA = updateSet.stream().mapToInt(i -> i).toArray();
 
             if (!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
-                virusFound = true;
-                
-                int[] differences = new int[]{};
+                setVirusFound(true);
+
+                int[] differences = new int[] {};
                 int codonLocation = 0;
-                
+
                 for (int index = 0; index < cellDNA.length; index++) {
-                    if(cellDNA[index] != Constants.CELL_IDENTIFYING_DNA[index]) {
+                    if (cellDNA[index] != Constants.CELL_IDENTIFYING_DNA[index]) {
                         cellDNA[codonLocation] = index;
                         codonLocation++;
                     }
@@ -156,7 +170,46 @@ public class DendriticCellAgent extends Agent{
         }
 
     }
-    
+
+    private class AskingCellAboutLymphVessel extends OneShotBehaviour {
+
+        String conversationID = "vessel_confirmation_channel";
+        String questionForCell = "tell_if_you_are_a_vessel";
+
+        @Override
+        public void action() {
+
+            try {
+                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                message.setConversationId(conversationID);
+                String targetCell = "cell."
+                        .concat(String.valueOf(myAgent.getContainerController().getContainerName()));
+                message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
+                message.setContent(questionForCell);
+                send(message);
+                Boolean replyReceived = false;
+                
+                while (!replyReceived) {
+                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
+                    ACLMessage receivedMessage = receive(reply);
+                    if (receivedMessage != null) {
+                        replyReceived = true;
+                        Boolean status = Boolean.parseBoolean(receivedMessage.getContent());
+                        if (status) {
+                            setReachedVessel(status);
+                            myAgent.addBehaviour(new ContactVesselInCell());
+                        } else {
+                            myAgent.addBehaviour(new MovingToNewCell());
+                        } 
+                    }
+                }
+
+            } catch (ControllerException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private class MovingToNewCell extends OneShotBehaviour {
 
         @Override
@@ -174,19 +227,11 @@ public class DendriticCellAgent extends Agent{
         }
     }
 
-    private class AskingCellAboutLymphVessel extends OneShotBehaviour {
+    private class ContactVesselInCell extends OneShotBehaviour {
 
         @Override
         public void action() {
-            
-        }
-    }
-
-    private class MovingTowardsVessel extends OneShotBehaviour {
-
-        @Override
-        public void action() {
-            
+            System.out.println("Vessel Here");
         }
     }
 }

@@ -145,7 +145,7 @@ public class MacrophageAgent extends Agent {
             String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
             ContainerController thisContainer = myAgent.getContainerController();
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
-            virusAgentController.kill();
+            /* virusAgentController.kill(); */
             System.out
                     .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET);
         } catch (ControllerException e) {
