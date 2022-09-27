@@ -103,8 +103,8 @@ public class LymphVesselAgent extends Agent {
     }
 
     private class TellNextLocationToDendriticCell extends CyclicBehaviour {
-        String conversationID = "Tell_About_Neighbours";
-        String query = "neighbour_list";
+        String conversationID = "Vessel_Dendritic_Communication_Channel";
+        String query = "give_me_next_vessel";
 
         @Override
         public void action() {

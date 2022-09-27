@@ -207,7 +207,6 @@ public class CellAgent extends Agent {
                     reply.setConversationId(conversationID);
                     reply.setSender(msg.getSender());
                     reply.setContent(String.valueOf(ifLymphVesselPresent));
-                    System.out.println(reply);
                     send(reply);
                 }
             }

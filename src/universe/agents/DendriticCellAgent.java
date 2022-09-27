@@ -188,7 +188,7 @@ public class DendriticCellAgent extends Agent {
                 message.setContent(questionForCell);
                 send(message);
                 Boolean replyReceived = false;
-                
+
                 while (!replyReceived) {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
@@ -200,7 +200,7 @@ public class DendriticCellAgent extends Agent {
                             myAgent.addBehaviour(new ContactVesselInCell());
                         } else {
                             myAgent.addBehaviour(new MovingToNewCell());
-                        } 
+                        }
                     }
                 }
 
@@ -231,7 +231,54 @@ public class DendriticCellAgent extends Agent {
 
         @Override
         public void action() {
-            System.out.println("Vessel Here");
+            String conversationID = "Vessel_Dendritic_Communication_Channel";
+            String questionForVessel = "give_me_next_vessel";
+
+            try {
+                String targetVessel = "lymphVessel.".concat(myAgent.getContainerController().getContainerName());
+                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                message.setConversationId(conversationID);
+                message.addReceiver(new AID(targetVessel, AID.ISLOCALNAME));
+                message.setContent(questionForVessel);
+                myAgent.send(message);
+
+                Boolean gotReply = false;
+
+                while (!gotReply) {
+                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
+                    ACLMessage receivedMessage = receive(reply);
+
+                    if (receivedMessage != null) {
+                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+                        setPossiblePlacesToMove(locations);
+                        gotReply = true;
+                        break;
+                    }
+                }
+                myAgent.addBehaviour(new MoveToNextVessel());
+
+            } catch (ControllerException | UnreadableException e) {
+                e.printStackTrace();
+            }
+
         }
+    }
+
+    private class MoveToNextVessel extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            if (possiblePlacesToMove.size() > 0) {
+                Location currentLocation = myAgent.here();
+                Random rand = new Random();
+                Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
+                if (!locationToMove.equals(currentLocation)) {
+                    doWait(500);
+                    doMove(locationToMove);
+                }
+            }
+            myAgent.addBehaviour(new ContactVesselInCell());
+        }
+
     }
 }
