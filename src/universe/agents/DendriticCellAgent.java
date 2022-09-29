@@ -44,6 +44,12 @@ public class DendriticCellAgent extends Agent {
         this.reachedVessel = status;
     }
 
+    Boolean reachedLymphNode = false;
+
+    public void setReachedLymphNode(Boolean status) {
+        this.reachedLymphNode = status;
+    }
+
     @Override
     protected void setup() {
 
