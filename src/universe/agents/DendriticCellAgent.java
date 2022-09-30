@@ -256,7 +256,11 @@ public class DendriticCellAgent extends Agent {
 
                     if (receivedMessage != null) {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        setPossiblePlacesToMove(locations);
+                        if (locations.size() > 0) {
+                            setPossiblePlacesToMove(locations);
+                        } else {
+                            setReachedLymphNode(true);
+                        }
                         gotReply = true;
                         break;
                     }

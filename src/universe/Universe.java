@@ -75,7 +75,10 @@ public class Universe {
         }
 
         /* Create Dendritic Cell(s) */
-        auxiliaryContainer.createDendriticCell(CONTAINER_CONTROLLER_HASH_MAP.get("Container-0"));
+        int randomInt = (int) (Math.random() * (UNIVERSE_SIZE));
+            ContainerController randContainerController = CONTAINER_CONTROLLER_HASH_MAP
+                    .get("Container-".concat(String.valueOf(randomInt)));
+        auxiliaryContainer.createDendriticCell(randContainerController);
 
         // Initiator Agent
         mainContainer.createInitiatorAgent(
