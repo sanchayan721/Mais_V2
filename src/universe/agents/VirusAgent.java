@@ -1,4 +1,5 @@
 package universe.agents;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Location;
@@ -7,14 +8,17 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.*;
+import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
 import static universe.laws.Constants.*;
 
 public class VirusAgent extends Agent {
+
     Boolean cellPresentInContainer = true;
 
     // Neighbouring Locations
@@ -24,8 +28,21 @@ public class VirusAgent extends Agent {
         this.possiblePlacesToMove = locs;
     }
 
+    VirusInformation virusInformation;
+
     @Override
     protected void setup() {
+        Object[] arguments = getArguments();
+        VirusInformation information = new VirusInformation();
+        
+        information.virus_signature = (int[]) arguments[0];
+        information.virus_replication_factor = (int) arguments[1];
+        information.virus_cell_communication_time = (int) arguments[2];
+        information.virus_replication_time = (int) arguments[3];
+        information.time_to_kill_the_cell = (int) arguments[4];
+
+        this.virusInformation = information;
+
         addBehaviour(new CheckingIfCellAliveInContainer());
     }
 
@@ -54,14 +71,13 @@ public class VirusAgent extends Agent {
                 String targetCell = "cell.".concat(String.valueOf(myAgent.getContainerController().getContainerName()));
                 // System.out.println(targetCellID);
                 messageToCell.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
-                ; // receiver
                 messageToCell.setConversationId("Update_DNA_Message_From_Virus"); // conversation id
-            } catch (ControllerException e) {
+                messageToCell.setContentObject(VIRUS_SIGNATURE);
+                send(messageToCell); // sending method
+            } catch (ControllerException | IOException e) {
                 e.printStackTrace();
             }
             // Send message to Cell About Genetic Modification
-            messageToCell.setContent(VIRUS_SIGNATURE);
-            send(messageToCell); // sending method
             myAgent.addBehaviour(new AskingCellForNeighbours());
         }
     }
@@ -80,7 +96,7 @@ public class VirusAgent extends Agent {
                 message.setContent(questionForCell);
                 send(message);
 
-                doWait(VIRUS_CELL_COMMUNICATION_TIME);
+                doWait(virusInformation.virus_cell_communication_time);
                 MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                 ACLMessage receivedMessage = receive(reply);
                 if (receivedMessage != null) {
@@ -96,7 +112,7 @@ public class VirusAgent extends Agent {
 
     private class CloningBehaviour extends OneShotBehaviour {
         public void action() {
-            doWait(VIRUS_REPLICATION_TIME);
+            doWait(virusInformation.virus_replication_time);
             ArrayList<Location> cloningLocations = getPlacesToClone(possiblePlacesToMove);
 
             System.out.println("\n**************************************************");
@@ -119,8 +135,13 @@ public class VirusAgent extends Agent {
                 ACLMessage message = new ACLMessage(ACLMessage.INFORM);
                 message.setConversationId(conversationID);
                 message.addReceiver(new AID(remoteCellName, AID.ISLOCALNAME));
-                message.setContent(messageContent);
-                send(message);
+                try {
+                    message.setContent(messageContent);
+                    message.setContentObject(virusInformation);
+                    send(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 doWait(200);
             }
 
@@ -137,14 +158,14 @@ public class VirusAgent extends Agent {
             Location currentLocation = myAgent.here();
             Random random = new Random();
 
-            if (universe.laws.Constants.VIRUS_REPLICATION_FACTOR > possiblePlaces.size()) {
+            if (virusInformation.virus_replication_factor > possiblePlaces.size()) {
                 for (Location possibleLocation : possiblePlaces) {
                     if (!possibleLocation.equals(currentLocation)) {
                         cloningLocation.add(possibleLocation);
                     }
                 }
             } else {
-                for (int i = 0; i < universe.laws.Constants.VIRUS_REPLICATION_FACTOR; i++) {
+                for (int i = 0; i < virusInformation.virus_replication_factor; i++) {
                     int randomIndex = random.nextInt(possiblePlaces.size());
                     Location randomlyChosenLocation = possiblePlaces.get(randomIndex);
                     if (!randomlyChosenLocation.equals(currentLocation)
@@ -163,15 +184,18 @@ public class VirusAgent extends Agent {
         @Override
         public void action() {
 
-            doWait(KILL_THE_CELL_AFTERWARD);
+            doWait(virusInformation.time_to_kill_the_cell);
 
             try {
                 ContainerController currentContainerController = myAgent.getContainerController();
                 String targetCell = "cell.".concat(myAgent.getContainerController().getContainerName());
                 AgentController targetCellAgentController = currentContainerController.getAgent(targetCell);
 
-                /* System.out.println(
-                        ANSI_RED + "VIRUS" + ANSI_RESET + ": \tKilled ".concat(targetCellAgentController.getName())); */
+                /*
+                 * System.out.println(
+                 * ANSI_RED + "VIRUS" + ANSI_RESET +
+                 * ": \tKilled ".concat(targetCellAgentController.getName()));
+                 */
                 targetCellAgentController.kill();
                 /* System.out.println(myAgent.getName()); */
                 myAgent.doDelete();

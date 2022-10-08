@@ -10,6 +10,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
 import java.io.IOException;
@@ -211,7 +212,7 @@ public class CellAgent extends Agent {
                 }
             }
         }
-        
+
     }
 
     private class ListenToVirus extends CyclicBehaviour {
@@ -224,21 +225,17 @@ public class CellAgent extends Agent {
 
             if (msg != null) {
 
-                String messageContent = msg.getContent();
-                int[] updatePoints = getPointUpdates(messageContent);
-                this.getAgent().removeBehaviour(this);
-                updateDNA(updatePoints);
+                try {
+                    Object messageContent = msg.getContentObject();
+                    if (messageContent != null) {
+                        int[] updatePoints = (int[]) messageContent;
+                        updateDNA(updatePoints);
+                    }
+                    this.getAgent().removeBehaviour(this);
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
             }
-        }
-
-        private int[] getPointUpdates(String messageStream) {
-            Pattern pattern = Pattern.compile("\\d+");
-            Matcher matcher = pattern.matcher(messageStream);
-            ArrayList<Integer> updateSet = new ArrayList<>();
-            while (matcher.find()) {
-                updateSet.add(Integer.valueOf(matcher.group()));
-            }
-            return updateSet.stream().mapToInt(i -> i).toArray();
         }
     }
 
@@ -277,13 +274,14 @@ public class CellAgent extends Agent {
 
                     try {
                         if (!isVirusAlreadyPresent()) {
-                            spwanAVirus();
+                            VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
+                            spwanAVirus(virusInformation);
                             /* myAgent.removeBehaviour(this); */
                         } else {
                             block();
                         }
-                    } catch (StaleProxyException e) {
-                    } catch (ControllerException e) {
+                    } catch (ControllerException | UnreadableException e) {
+                        e.getStackTrace();
                     }
                 }
                 this.getAgent().removeBehaviour(this);
@@ -301,11 +299,17 @@ public class CellAgent extends Agent {
             return virusPresent;
         }
 
-        private void spwanAVirus() throws StaleProxyException, ControllerException {
+        private void spwanAVirus(VirusInformation virusInformation) throws StaleProxyException, ControllerException {
             ContainerController myContainerController = myAgent.getContainerController();
             AgentController virusAgentController = myContainerController.createNewAgent(
                     "virus.".concat(myContainerController.getContainerName()), "universe.agents.VirusAgent",
-                    new Object[] {});
+                    new Object[] {
+                        virusInformation.virus_signature,
+                        virusInformation.virus_replication_factor,
+                        virusInformation.virus_cell_communication_time,
+                        virusInformation.virus_replication_time,
+                        virusInformation.time_to_kill_the_cell
+                    });
 
             virusAgentController.start();
         }

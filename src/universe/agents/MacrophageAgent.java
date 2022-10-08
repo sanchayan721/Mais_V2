@@ -41,7 +41,7 @@ public class MacrophageAgent extends Agent {
             Object[] arguments = getArguments();
             ContainerController initialContainerController = (ContainerController) arguments[0];
             try {
-                doWait(PHAGOCYTE_SLEEP_TIME);
+                doWait(Constants.MACROPHAGE_SLEEP_TIME);
                 // ContainerController destinationContainer =
                 // Universe.CONTAINER_CONTROLLER_HASH_MAP.get("Container-0");
                 try {
@@ -106,7 +106,7 @@ public class MacrophageAgent extends Agent {
                 } catch (ControllerException e) {
                     e.printStackTrace();
                 }
-                doWait(PHAGOCYTE_CELL_COMMUNICATION_TIME);
+                doWait(Constants.MACROPHAGE_CELL_COMMUNICATION_TIME);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
                 ACLMessage messageFromCell = receive(messageTemplate);
                 if (messageFromCell != null) {
@@ -145,9 +145,9 @@ public class MacrophageAgent extends Agent {
             String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
             ContainerController thisContainer = myAgent.getContainerController();
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
-            virusAgentController.kill();
-            System.out
-                    .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET);
+            /* virusAgentController.kill(); */
+            /* System.out
+                    .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET); */
         } catch (ControllerException e) {
             return;
         }
@@ -177,7 +177,7 @@ public class MacrophageAgent extends Agent {
                 Random rand = new Random();
                 Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
                 if (!locationToMove.equals(currentLocation)) {
-                    doWait(PHAGOCYTE_SLEEP_TIME);
+                    doWait(Constants.MACROPHAGE_SLEEP_TIME);
                     doMove(locationToMove);
                 }
             }
