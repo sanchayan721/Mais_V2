@@ -95,8 +95,7 @@ public class DendriticCellAgent extends Agent {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
                         setPossiblePlacesToMove(locations);
                     }
-                } catch (ControllerException | UnreadableException e) {
-                    e.printStackTrace();
+                } catch (ControllerException | UnreadableException ignored) {
                 }
             } else {
                 cellPresentInContainer = false;
@@ -126,8 +125,7 @@ public class DendriticCellAgent extends Agent {
                     String messageContent = "Verify_Identity";
                     messageToCell.setContent(messageContent);
                     send(messageToCell);
-                } catch (ControllerException e) {
-                    e.printStackTrace();
+                } catch (ControllerException ignored) {
                 }
                 doWait(200);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
@@ -135,8 +133,7 @@ public class DendriticCellAgent extends Agent {
                 if (messageFromCell != null) {
                     try {
                         dnaToBeVerified = (int[]) messageFromCell.getContentObject();
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
+                    } catch (UnreadableException blocked) {
                     }
                 }
             } else {
@@ -164,7 +161,6 @@ public class DendriticCellAgent extends Agent {
 
                 int[] differences = differenceList.stream().mapToInt(i -> i).toArray();
                 setVirusIdentifynigCodon(differences);
-                System.out.println(Arrays.toString(differences));
                 myAgent.addBehaviour(new AskingCellAboutLymphVessel());
 
             } else {
@@ -207,8 +203,7 @@ public class DendriticCellAgent extends Agent {
                     }
                 }
 
-            } catch (ControllerException e) {
-                e.printStackTrace();
+            } catch (ControllerException ignored) {
             }
         }
     }
@@ -264,8 +259,7 @@ public class DendriticCellAgent extends Agent {
                 }
                 myAgent.addBehaviour(new MoveToNextVessel());
 
-            } catch (ControllerException | UnreadableException e) {
-                e.printStackTrace();
+            } catch (ControllerException | UnreadableException ignored) {
             }
 
         }

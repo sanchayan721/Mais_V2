@@ -83,8 +83,7 @@ public class CellAgent extends Agent {
                             reply.addReceiver(message.getSender());
                             reply.setContentObject(myLocation);
                             send(reply);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (IOException ignored) {
                         }
                     }
                 }
@@ -108,8 +107,7 @@ public class CellAgent extends Agent {
                                 .getContentObject();
                         setNeighboursLocations(neighbourLocation);
                     }
-                } catch (UnreadableException | ControllerException e) {
-                    e.printStackTrace();
+                } catch (UnreadableException | ControllerException ignored) {
                 }
             }
         }
@@ -155,8 +153,7 @@ public class CellAgent extends Agent {
                     try {
                         reply.setContentObject(myDNA);
                         send(reply);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (IOException blocked) {
                     }
                 }
             }
@@ -182,8 +179,7 @@ public class CellAgent extends Agent {
                             reply.setConversationId(conversationID);
                             reply.setContentObject(neighboursLocations);
                             send(reply);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (IOException blocked) {
                         }
                     }
                 }
@@ -233,8 +229,7 @@ public class CellAgent extends Agent {
                         updateDNA(updatePoints);
                     }
                     this.getAgent().removeBehaviour(this);
-                } catch (UnreadableException e) {
-                    e.printStackTrace();
+                } catch (UnreadableException blocked) {
                 }
             }
         }
@@ -277,8 +272,7 @@ public class CellAgent extends Agent {
                     } else {
                         block();
                     }
-                } catch (ControllerException | UnreadableException e) {
-                    e.getStackTrace();
+                } catch (ControllerException | UnreadableException ignored) {
                 }
                 this.getAgent().removeBehaviour(this);
             }

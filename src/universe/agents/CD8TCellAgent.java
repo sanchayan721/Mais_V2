@@ -21,7 +21,7 @@ public class CD8TCellAgent extends Agent {
 
     int[] virus_signature = new int[] {};
 
-    private int[] cellDNAToBeVerified = new int[]{};
+    private int[] cellDNAToBeVerified = new int[] {};
 
     ArrayList<Location> possiblePlacesToMove = new ArrayList<>();
 
@@ -58,8 +58,7 @@ public class CD8TCellAgent extends Agent {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
                         setPossiblePlacesToMove(locations);
                     }
-                } catch (ControllerException | UnreadableException e) {
-                    e.printStackTrace();
+                } catch (ControllerException | UnreadableException ignored) {
                 }
             }
             myAgent.addBehaviour(new AskingCellForIdentity());
@@ -82,8 +81,7 @@ public class CD8TCellAgent extends Agent {
                     String messageContent = "Verify_Identity";
                     messageToCell.setContent(messageContent);
                     send(messageToCell);
-                } catch (ControllerException e) {
-                    e.printStackTrace();
+                } catch (ControllerException ignored) {
                 }
                 doWait(Constants.MACROPHAGE_CELL_COMMUNICATION_TIME);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
@@ -91,8 +89,7 @@ public class CD8TCellAgent extends Agent {
                 if (messageFromCell != null) {
                     try {
                         cellDNAToBeVerified = (int[]) messageFromCell.getContentObject();
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
+                    } catch (UnreadableException blocked) {
                     }
                 }
             }
@@ -114,15 +111,30 @@ public class CD8TCellAgent extends Agent {
                 }
 
                 int[] differences = differenceList.stream().mapToInt(i -> i).toArray();
-                
-                if(!Arrays.equals(differences, virus_signature)) {
-                    myAgent.addBehaviour(new MovingToNewCell());
-                } else {
-                    
+
+                if (Arrays.equals(differences, virus_signature)) {
+                    try {
+                        killTheCellAndVirus(myAgent);
+                        myAgent.addBehaviour(new MovingToNewCell());
+                    } catch (ControllerException blocked) {
+                    }
                 }
-            } else {
-                myAgent.addBehaviour(new MovingToNewCell());
             }
+            myAgent.addBehaviour(new MovingToNewCell());
+        }
+
+        protected void killTheCellAndVirus(Agent mAgent) throws ControllerException {
+
+            ContainerController currentContainerController = mAgent.getContainerController();
+            String currentContainerName = currentContainerController.getContainerName();
+            String targetContaminant = "virus.".concat(currentContainerName);
+            String targetCell = "cell.".concat(currentContainerName);
+
+            AgentController targetContaminantController = currentContainerController.getAgent(targetContaminant);
+            targetContaminantController.kill();
+
+            AgentController targetCellController = currentContainerController.getAgent(targetCell);
+            targetCellController.kill();
         }
     }
 

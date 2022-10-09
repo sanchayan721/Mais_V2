@@ -124,8 +124,6 @@ public class Universe {
         int[] virus_signature = virusGenerator.generateVirus();
         virusGenerator.activateVirus();
 
-        System.out.println(Arrays.toString(virus_signature));
-
         /* Creating CD8TCells */
         int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
         int numberOfTCellsWithSignature = totalAvailableCD8TCells * IMMUNITY_STRENGTH_PERCENTAGE / 100;
@@ -157,23 +155,6 @@ public class Universe {
             }
             cd8Counter++;
         }
-
-        /*
-         * for (int j = 0; j <= totalAvailableCD8TCells; j++) {
-         * 
-         * int randomContainer = (int) (Math.random() * (UNIVERSE_SIZE));
-         * ContainerController jContainerController = CONTAINER_CONTROLLER_HASH_MAP
-         * .get("Container-".concat(String.valueOf(randomContainer)));
-         * 
-         * 
-         * if (j <= numberOfTCellsWithSignature) {
-         * auxiliaryContainer.createCD8TCell(jContainerController, true);
-         * } else {
-         * auxiliaryContainer.createCD8TCell(jContainerController, false);
-         * }
-         * 
-         * }
-         */
     }
 
     /* Stopping the simulation */

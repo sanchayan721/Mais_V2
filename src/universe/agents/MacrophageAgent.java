@@ -77,8 +77,7 @@ public class MacrophageAgent extends Agent {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
                         setPossiblePlacesToMove(locations);
                     }
-                } catch (ControllerException | UnreadableException e) {
-                    e.printStackTrace();
+                } catch (ControllerException | UnreadableException ignored) {
                 }
             }
             myAgent.addBehaviour(new AskingCellForIdentity());
@@ -101,8 +100,7 @@ public class MacrophageAgent extends Agent {
                     String messageContent = "Verify_Identity";
                     messageToCell.setContent(messageContent);
                     send(messageToCell);
-                } catch (ControllerException e) {
-                    e.printStackTrace();
+                } catch (ControllerException ignored) {
                 }
                 doWait(Constants.MACROPHAGE_CELL_COMMUNICATION_TIME);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
@@ -110,8 +108,7 @@ public class MacrophageAgent extends Agent {
                 if (messageFromCell != null) {
                     try {
                         cellDNAToBeVerified = (int[]) messageFromCell.getContentObject();
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
+                    } catch (UnreadableException blocked) {
                     }
                 }
             } 
