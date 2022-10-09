@@ -28,7 +28,8 @@ public class Constants {
     public static final int VIRUS_REPLICATION_FACTOR = 3;
     public static final int KILL_THE_CELL_AFTERWARD = 2000;
     public static final int CELL_REGENERATION_TIME_AVG = 4000;
-    public static final int[] VIRUS_SIGNATURE = new int[] {10, 25, 20, 22, 15};
+    public static final int[] GENERIC_VIRUS_SIGNATURE = new int[] {10, 25, 20, 22, 15};
+    public static final int VIRUS_SIGNATURE_LENGTH = CELL_IDENTIFYING_DNA.length * 30 / 100; // 30% of Cell DNA Length
     /* public static final int[] VIRUS_IDENTIFYING_CODON = new int[] {1, 0, 0, 1, 1, 0, 1, 1, 0, 0}; */
     
     /* System Settings */

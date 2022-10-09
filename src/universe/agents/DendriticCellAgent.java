@@ -17,7 +17,7 @@ import jade.wrapper.ControllerException;
 
 public class DendriticCellAgent extends Agent {
 
-    private String dnaToBeVerified = null;
+    private int[] dnaToBeVerified = new int[]{};
 
     Boolean virusFound = false;
 
@@ -133,7 +133,11 @@ public class DendriticCellAgent extends Agent {
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
                 ACLMessage messageFromCell = receive(messageTemplate);
                 if (messageFromCell != null) {
-                    dnaToBeVerified = messageFromCell.getContent();
+                    try {
+                        dnaToBeVerified = (int[]) messageFromCell.getContentObject();
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
+                    }
                 }
             } else {
                 cellPresentInContainer = false;
@@ -148,28 +152,21 @@ public class DendriticCellAgent extends Agent {
         @Override
         public void action() {
 
-            /* System.out.println(this); */
-            ArrayList<Integer> updateSet = new ArrayList<>();
-            for (Character s : dnaToBeVerified.toCharArray()) {
-                updateSet.add(Character.getNumericValue(s));
-            }
-
-            int[] cellDNA = updateSet.stream().mapToInt(i -> i).toArray();
-
-            if (!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
+            if (!Arrays.equals(dnaToBeVerified, Constants.CELL_IDENTIFYING_DNA)) {
                 setVirusFound(true);
 
-                int[] differences = new int[] {};
-                int codonLocation = 0;
-
-                for (int index = 0; index < cellDNA.length; index++) {
-                    if (cellDNA[index] != Constants.CELL_IDENTIFYING_DNA[index]) {
-                        cellDNA[codonLocation] = index;
-                        codonLocation++;
+                ArrayList<Integer> differenceList = new ArrayList<>();
+                for (int index = 0; index < dnaToBeVerified.length; index++) {
+                    if (dnaToBeVerified[index] != Constants.CELL_IDENTIFYING_DNA[index]) {
+                        differenceList.add(index);
                     }
                 }
+
+                int[] differences = differenceList.stream().mapToInt(i -> i).toArray();
                 setVirusIdentifynigCodon(differences);
+                System.out.println(Arrays.toString(differences));
                 myAgent.addBehaviour(new AskingCellAboutLymphVessel());
+
             } else {
                 myAgent.addBehaviour(new MovingToNewCell());
             }

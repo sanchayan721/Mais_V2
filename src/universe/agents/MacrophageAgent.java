@@ -17,11 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import static universe.laws.Constants.*;
-
 public class MacrophageAgent extends Agent {
 
-    private String dnaToBeVerified = null;
+    private int[] cellDNAToBeVerified = new int[]{};
+
     ArrayList<Location> possiblePlacesToMove = new ArrayList<>();
 
     private void setPossiblePlacesToMove(ArrayList<Location> locs) {
@@ -30,7 +29,6 @@ public class MacrophageAgent extends Agent {
 
     @Override
     protected void setup() {
-
         addBehaviour(new GoingToInitialPosition());
     }
 
@@ -110,10 +108,13 @@ public class MacrophageAgent extends Agent {
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
                 ACLMessage messageFromCell = receive(messageTemplate);
                 if (messageFromCell != null) {
-                    dnaToBeVerified = messageFromCell.getContent();
+                    try {
+                        cellDNAToBeVerified = (int[]) messageFromCell.getContentObject();
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } else {
-            }
+            } 
             myAgent.addBehaviour(new DetectingAndKillingVirus());
         }
     }
@@ -123,15 +124,7 @@ public class MacrophageAgent extends Agent {
         @Override
         public void action() {
 
-            /* System.out.println(this); */
-            ArrayList<Integer> updateSet = new ArrayList<>();
-            for (Character s : dnaToBeVerified.toCharArray()) {
-                updateSet.add(Character.getNumericValue(s));
-            }
-
-            int[] cellDNA = updateSet.stream().mapToInt(i -> i).toArray();
-
-            if (!Arrays.equals(cellDNA, Constants.CELL_IDENTIFYING_DNA)) {
+            if (!Arrays.equals(cellDNAToBeVerified, Constants.CELL_IDENTIFYING_DNA)) {
                 repairDNA();
                 killTheVirus(myAgent);
             }
@@ -146,8 +139,11 @@ public class MacrophageAgent extends Agent {
             ContainerController thisContainer = myAgent.getContainerController();
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
             /* virusAgentController.kill(); */
-            /* System.out
-                    .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED + "virus" + ANSI_RESET); */
+            /*
+             * System.out
+             * .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED +
+             * "virus" + ANSI_RESET);
+             */
         } catch (ControllerException e) {
             return;
         }

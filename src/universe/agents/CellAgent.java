@@ -15,8 +15,6 @@ import universe.laws.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CellAgent extends Agent {
 
@@ -75,7 +73,6 @@ public class CellAgent extends Agent {
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                 ACLMessage message = receive(messageTemplate);
                 Location myLocation = myAgent.here();
-                String myContainerName = myAgent.getContainerController().getName();
                 if (message != null) {
                     String receivedQuery = message.getContent();
                     if (receivedQuery.equals(query)) {
@@ -149,14 +146,18 @@ public class CellAgent extends Agent {
                     reply.setConversationId("Signature_Verification_Channel");
                     reply.setSender(msg.getSender());
 
-                    StringBuilder myDNACode = new StringBuilder();
+                    /* StringBuilder myDNACode = new StringBuilder();
                     for (int codon : myDNA) {
                         myDNACode.append(codon);
                     }
 
-                    reply.setContent(myDNACode.toString());
-                    send(reply);
-
+                    reply.setContent(myDNACode.toString()); */
+                    try {
+                        reply.setContentObject(myDNA);
+                        send(reply);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -261,7 +262,6 @@ public class CellAgent extends Agent {
         @Override
         public void action() {
 
-            String expectedMessage = "Spwan_A_New_Virus";
             String conversationID = "Spwan_A_New_Virus_Channel";
 
             MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
@@ -269,20 +269,16 @@ public class CellAgent extends Agent {
 
             if (msg != null) {
 
-                String messageContent = msg.getContent();
-                if (messageContent.equals(expectedMessage)) {
-
-                    try {
-                        if (!isVirusAlreadyPresent()) {
-                            VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
-                            spwanAVirus(virusInformation);
-                            /* myAgent.removeBehaviour(this); */
-                        } else {
-                            block();
-                        }
-                    } catch (ControllerException | UnreadableException e) {
-                        e.getStackTrace();
+                try {
+                    if (!isVirusAlreadyPresent()) {
+                        VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
+                        spwanAVirus(virusInformation);
+                        /* myAgent.removeBehaviour(this); */
+                    } else {
+                        block();
                     }
+                } catch (ControllerException | UnreadableException e) {
+                    e.getStackTrace();
                 }
                 this.getAgent().removeBehaviour(this);
             }
@@ -304,11 +300,11 @@ public class CellAgent extends Agent {
             AgentController virusAgentController = myContainerController.createNewAgent(
                     "virus.".concat(myContainerController.getContainerName()), "universe.agents.VirusAgent",
                     new Object[] {
-                        virusInformation.virus_signature,
-                        virusInformation.virus_replication_factor,
-                        virusInformation.virus_cell_communication_time,
-                        virusInformation.virus_replication_time,
-                        virusInformation.time_to_kill_the_cell
+                            virusInformation.virus_signature,
+                            virusInformation.virus_replication_factor,
+                            virusInformation.virus_cell_communication_time,
+                            virusInformation.virus_replication_time,
+                            virusInformation.time_to_kill_the_cell
                     });
 
             virusAgentController.start();

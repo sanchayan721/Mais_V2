@@ -27,7 +27,7 @@ public class MainContainer {
     public void createMacrophageAgent(ContainerController containerController, int id,
             ContainerController iContainerController) {
         try {
-            String macrophageName = "Macrophage-".concat(String.valueOf(id));
+            String macrophageName = "Macrophage-" + String.valueOf(id);
             AgentController MacrophageAgentController = containerController.createNewAgent(
                     macrophageName, "universe.agents.MacrophageAgent", new Object[] { iContainerController });
             MacrophageAgentController.start();

@@ -72,7 +72,7 @@ public class VirusAgent extends Agent {
                 // System.out.println(targetCellID);
                 messageToCell.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
                 messageToCell.setConversationId("Update_DNA_Message_From_Virus"); // conversation id
-                messageToCell.setContentObject(VIRUS_SIGNATURE);
+                messageToCell.setContentObject(virusInformation.virus_signature);
                 send(messageToCell); // sending method
             } catch (ControllerException | IOException e) {
                 e.printStackTrace();
@@ -130,13 +130,11 @@ public class VirusAgent extends Agent {
 
                 String remoteCellName = "cell.".concat(location.getName());
                 String conversationID = "Spwan_A_New_Virus_Channel";
-                String messageContent = "Spwan_A_New_Virus";
 
                 ACLMessage message = new ACLMessage(ACLMessage.INFORM);
                 message.setConversationId(conversationID);
                 message.addReceiver(new AID(remoteCellName, AID.ISLOCALNAME));
                 try {
-                    message.setContent(messageContent);
                     message.setContentObject(virusInformation);
                     send(message);
                 } catch (IOException e) {

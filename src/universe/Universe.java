@@ -6,21 +6,28 @@ import universe.containers.MainContainer;
 import universe.laws.Constants;
 import universe.laws.VirusGenerator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
 public class Universe {
 
     int GRID_SIZE;
     int UNIVERSE_SIZE;
     int IMMUNITY_STRENGTH_PERCENTAGE;
-    int[] pathogens_replication_factor;
+    int pathogens_replication_factor;
 
     public static HashMap<String, ContainerController> CONTAINER_CONTROLLER_HASH_MAP;
     public static HashMap<ContainerController, int[]> CONTROLLER_GRID_MAP;
     public static HashMap<String, ContainerController> LYMPH_PATH_MAP;
     public static HashMap<String, int[]> LYMPH_COORDINATE_MAP;
 
-    public Universe(int grid_size, int immunity_strength_percentage, int[] pathogens_replication_factor) {
+    public Universe(
+            int grid_size, int immunity_strength_percentage,
+            int pathogens_replication_factor) {
         GRID_SIZE = grid_size;
         UNIVERSE_SIZE = GRID_SIZE * GRID_SIZE;
         this.IMMUNITY_STRENGTH_PERCENTAGE = immunity_strength_percentage;
@@ -85,7 +92,7 @@ public class Universe {
         int randomInt = (int) (Math.random() * (UNIVERSE_SIZE));
         ContainerController randContainerController = CONTAINER_CONTROLLER_HASH_MAP
                 .get("Container-".concat(String.valueOf(randomInt)));
-        auxiliaryContainer.createDendriticCell(randContainerController);
+        auxiliaryContainer.createDendriticCell(randContainerController, 0);
 
         // Initiator Agent
         mainContainer.createInitiatorAgent(
@@ -104,39 +111,69 @@ public class Universe {
 
         }
 
-        // Creating First Virus Agent on A Random Container
-        for (int pathogen_replication_factor : pathogens_replication_factor) {
+        // Creating Virus Agents on Random Containers
 
-            int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
-            ContainerController randomContainerController = CONTAINER_CONTROLLER_HASH_MAP
-                    .get("Container-".concat(String.valueOf(randInt)));
+        int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
+        ContainerController randomContainerController = CONTAINER_CONTROLLER_HASH_MAP
+                .get("Container-".concat(String.valueOf(randInt)));
 
-            VirusGenerator virusGenerator = new VirusGenerator(
-                    randomContainerController,
-                    pathogen_replication_factor);
-            
-            virusGenerator.generateVirus();
-            virusGenerator.activateVirus();
-        }
+        VirusGenerator virusGenerator = new VirusGenerator(
+                randomContainerController,
+                pathogens_replication_factor);
+
+        int[] virus_signature = virusGenerator.generateVirus();
+        virusGenerator.activateVirus();
+
+        System.out.println(Arrays.toString(virus_signature));
 
         /* Creating CD8TCells */
         int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
         int numberOfTCellsWithSignature = totalAvailableCD8TCells * IMMUNITY_STRENGTH_PERCENTAGE / 100;
 
-        for (int j = 0; j <= totalAvailableCD8TCells; j++) {
+        Set<Integer> uniqueSetOfContainers = new HashSet<>();
 
-            int randomContainer = (int) (Math.random() * (UNIVERSE_SIZE));
-            ContainerController jContainerController = CONTAINER_CONTROLLER_HASH_MAP
-                    .get("Container-".concat(String.valueOf(randomContainer)));
-
-            /*
-             * if (j <= numberOfTCellsWithSignature) {
-             * auxiliaryContainer.createCD8TCell(jContainerController, true);
-             * } else {
-             * auxiliaryContainer.createCD8TCell(jContainerController, false);
-             * }
-             */
+        while (uniqueSetOfContainers.size() != totalAvailableCD8TCells) {
+            Random random = new Random();
+            int randomContainerNumber = random.nextInt(UNIVERSE_SIZE - 1);
+            uniqueSetOfContainers.add(randomContainerNumber);
         }
+
+        int cd8Counter = 0;
+        for (int containerNumber : uniqueSetOfContainers) {
+
+            ContainerController jContainerController = CONTAINER_CONTROLLER_HASH_MAP
+                    .get("Container-".concat(String.valueOf(containerNumber)));
+
+            if (cd8Counter <= numberOfTCellsWithSignature) {
+                auxiliaryContainer.createCD8TCell(
+                        jContainerController,
+                        virus_signature,
+                        cd8Counter);
+            } else {
+                auxiliaryContainer.createCD8TCell(
+                        jContainerController,
+                        Constants.GENERIC_VIRUS_SIGNATURE,
+                        cd8Counter);
+            }
+            cd8Counter++;
+        }
+
+        /*
+         * for (int j = 0; j <= totalAvailableCD8TCells; j++) {
+         * 
+         * int randomContainer = (int) (Math.random() * (UNIVERSE_SIZE));
+         * ContainerController jContainerController = CONTAINER_CONTROLLER_HASH_MAP
+         * .get("Container-".concat(String.valueOf(randomContainer)));
+         * 
+         * 
+         * if (j <= numberOfTCellsWithSignature) {
+         * auxiliaryContainer.createCD8TCell(jContainerController, true);
+         * } else {
+         * auxiliaryContainer.createCD8TCell(jContainerController, false);
+         * }
+         * 
+         * }
+         */
     }
 
     /* Stopping the simulation */

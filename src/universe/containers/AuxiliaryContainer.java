@@ -5,7 +5,6 @@ import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
-import universe.laws.Constants;
 
 public class AuxiliaryContainer {
 
@@ -38,11 +37,11 @@ public class AuxiliaryContainer {
         }
     }
 
-    public void createDendriticCell(ContainerController containerController) {
+    public void createDendriticCell(ContainerController containerController, int id) {
         try {
 
             AgentController dendriticCellController = containerController.createNewAgent(
-                    "dendriticcell.".concat(containerController.getContainerName()),
+                    "dendriticcell-" + Integer.toString(id),
                     "universe.agents.DendriticCellAgent",
                     new Object[] {});
 
@@ -66,12 +65,14 @@ public class AuxiliaryContainer {
         }
     }
 
-    public void createCD8TCell(ContainerController containerController, Boolean canDetectVirus) {
+    public void createCD8TCell(ContainerController containerController, int[] virus_signature, int id) {
         try {
-            containerController.createNewAgent(
-                    "cd8TCell.".concat(containerController.getContainerName()),
+            AgentController cd8TcellController = containerController.createNewAgent(
+                    "cd8TCell-" + Integer.toString(id),
                     "universe.agents.CD8TCellAgent",
-                    new Object[] {canDetectVirus});
+                    new Object[] { virus_signature });
+
+            cd8TcellController.start();
 
         } catch (Exception e) {
             e.getStackTrace();
