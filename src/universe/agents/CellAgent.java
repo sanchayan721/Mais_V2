@@ -15,10 +15,12 @@ import universe.laws.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CellAgent extends Agent {
 
     private final int[] myDNA = copyDNAFromSourceCodeOfUniverse();
+    private Boolean CELL_STATE = true; // Alive
 
     // Intrinsic Properties of a Cell Agent
 
@@ -53,12 +55,48 @@ public class CellAgent extends Agent {
         addBehaviour(new settingNeighboursLocationWithInitiator());
         addBehaviour(new checkingIFaVessel());
 
-        addBehaviour(new ListenToMacrophageAndDendriticCell());
+        addBehaviour(new ManageCellStatus());
+        addBehaviour(new SignatureVerificationBehaviour());
         addBehaviour(new TellDendriticCellAboutLymphVessel());
         addBehaviour(new TellNeighboursLocation());
         addBehaviour(new ListenToVirus());
         addBehaviour(new SpawningVirus());
         addBehaviour(new DNARepairBehaviour());
+    }
+
+    private class ManageCellStatus extends CyclicBehaviour {
+
+        String conversationID = "manage_cell_ststus";
+
+        @Override
+        public void action() {
+
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage message = receive(messageTemplate);
+            if (message != null) {
+                String receivedQuery = message.getContent();
+
+                switch (receivedQuery) {
+                    case "check_cell_status":
+                        ACLMessage reply = message.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setConversationId(conversationID);
+                        reply.addReceiver(message.getSender());
+                        reply.setContent(Boolean.toString(CELL_STATE));
+                        send(reply);
+                        break;
+
+                    case "change_cell_status":
+                        CELL_STATE = !CELL_STATE;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+        }
+
     }
 
     private class sendingOwnLocationToInitiator extends CyclicBehaviour {
@@ -130,30 +168,25 @@ public class CellAgent extends Agent {
 
     }
 
-    private class ListenToMacrophageAndDendriticCell extends CyclicBehaviour {
+    private class SignatureVerificationBehaviour extends CyclicBehaviour {
         @Override
         public void action() {
-            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
-            ACLMessage msg = receive(messageTemplate);
+            if (CELL_STATE) {
+                MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
+                ACLMessage msg = receive(messageTemplate);
 
-            if (msg != null) {
-                String messageContent = msg.getContent();
-                if (messageContent.equals("Verify_Identity")) {
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.INFORM);
-                    reply.setConversationId("Signature_Verification_Channel");
-                    reply.setSender(msg.getSender());
-
-                    /* StringBuilder myDNACode = new StringBuilder();
-                    for (int codon : myDNA) {
-                        myDNACode.append(codon);
-                    }
-
-                    reply.setContent(myDNACode.toString()); */
-                    try {
-                        reply.setContentObject(myDNA);
-                        send(reply);
-                    } catch (IOException blocked) {
+                if (msg != null) {
+                    String messageContent = msg.getContent();
+                    if (messageContent.equals("Verify_Identity")) {
+                        ACLMessage reply = msg.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setConversationId("Signature_Verification_Channel");
+                        reply.setSender(msg.getSender());
+                        try {
+                            reply.setContentObject(myDNA);
+                            send(reply);
+                        } catch (IOException blocked) {
+                        }
                     }
                 }
             }
@@ -216,20 +249,21 @@ public class CellAgent extends Agent {
 
         @Override
         public void action() {
+            if (CELL_STATE) {
+                MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Update_DNA_Message_From_Virus");
+                ACLMessage msg = receive(messageTemplate);
 
-            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Update_DNA_Message_From_Virus");
-            ACLMessage msg = receive(messageTemplate);
+                if (msg != null) {
 
-            if (msg != null) {
-
-                try {
-                    Object messageContent = msg.getContentObject();
-                    if (messageContent != null) {
-                        int[] updatePoints = (int[]) messageContent;
-                        updateDNA(updatePoints);
+                    try {
+                        Object messageContent = msg.getContentObject();
+                        if (messageContent != null) {
+                            int[] updatePoints = (int[]) messageContent;
+                            updateDNA(updatePoints);
+                        }
+                        this.getAgent().removeBehaviour(this);
+                    } catch (UnreadableException blocked) {
                     }
-                    this.getAgent().removeBehaviour(this);
-                } catch (UnreadableException blocked) {
                 }
             }
         }
@@ -238,16 +272,18 @@ public class CellAgent extends Agent {
     private class DNARepairBehaviour extends CyclicBehaviour {
         @Override
         public void action() {
-            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("DNA_Repair_Channel");
-            ACLMessage msg = receive(messageTemplate);
+            if (CELL_STATE) {
+                MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("DNA_Repair_Channel");
+                ACLMessage msg = receive(messageTemplate);
 
-            if (msg != null) {
-                String messageContent = msg.getContent();
-                if (messageContent.equals("repair")) {
-                    System.arraycopy(Constants.CELL_IDENTIFYING_DNA, 0, myDNA, 0,
-                            Constants.CELL_IDENTIFYING_DNA.length);
-                    this.getAgent().addBehaviour(new ListenToVirus());
-                    this.getAgent().addBehaviour(new SpawningVirus());
+                if (msg != null) {
+                    String messageContent = msg.getContent();
+                    if (messageContent.equals("repair")) {
+                        System.arraycopy(Constants.CELL_IDENTIFYING_DNA, 0, myDNA, 0,
+                                Constants.CELL_IDENTIFYING_DNA.length);
+                        this.getAgent().addBehaviour(new ListenToVirus());
+                        this.getAgent().addBehaviour(new SpawningVirus());
+                    }
                 }
             }
         }
@@ -256,25 +292,26 @@ public class CellAgent extends Agent {
     private class SpawningVirus extends CyclicBehaviour {
         @Override
         public void action() {
-
-            String conversationID = "Spwan_A_New_Virus_Channel";
-
-            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
-            ACLMessage msg = receive(messageTemplate);
-
-            if (msg != null) {
-
-                try {
-                    if (!isVirusAlreadyPresent()) {
-                        VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
-                        spwanAVirus(virusInformation);
-                        /* myAgent.removeBehaviour(this); */
-                    } else {
-                        block();
+            if (CELL_STATE) {
+                String conversationID = "Spwan_A_New_Virus_Channel";
+    
+                MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+                ACLMessage msg = receive(messageTemplate);
+    
+                if (msg != null) {
+    
+                    try {
+                        if (!isVirusAlreadyPresent()) {
+                            VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
+                            spwanAVirus(virusInformation);
+                            /* myAgent.removeBehaviour(this); */
+                        } else {
+                            block();
+                        }
+                    } catch (ControllerException | UnreadableException ignored) {
                     }
-                } catch (ControllerException | UnreadableException ignored) {
+                    this.getAgent().removeBehaviour(this);
                 }
-                this.getAgent().removeBehaviour(this);
             }
         }
 

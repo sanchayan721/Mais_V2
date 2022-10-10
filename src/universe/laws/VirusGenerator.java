@@ -1,6 +1,5 @@
 package universe.laws;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
@@ -17,9 +16,9 @@ public class VirusGenerator {
     
 
     int virus_replication_factor;
-    int virus_cell_communication_time = 1000;
-    int virus_replication_time = 10000;
-    int time_to_kill_the_cell = 2000;
+    int virus_cell_communication_time = 2000 * Constants.SIMULATION_TIME_SCALE;
+    int virus_replication_time = 20000 * Constants.SIMULATION_TIME_SCALE;
+    int time_to_kill_the_cell = 100000 * Constants.SIMULATION_TIME_SCALE; // Original Value 10000
 
     public VirusGenerator(ContainerController virusContainerController, int virus_replication_factor) {
         this.virusContainerController = virusContainerController;

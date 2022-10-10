@@ -90,7 +90,7 @@ public class AuxiliaryContainer {
 
     public static Boolean isThereAVirus(ContainerController auxiliaryContainerController) {
         try {
-            auxiliaryContainerController.getAgent("virus");
+            auxiliaryContainerController.getAgent("virus".concat(auxiliaryContainerController.getContainerName()));
             return true;
         } catch (Exception ignored) {
             return false;

@@ -17,7 +17,7 @@ import jade.wrapper.ControllerException;
 
 public class DendriticCellAgent extends Agent {
 
-    private int[] dnaToBeVerified = new int[]{};
+    private int[] dnaToBeVerified = new int[] {};
 
     Boolean virusFound = false;
 
@@ -49,6 +49,8 @@ public class DendriticCellAgent extends Agent {
     public void setReachedLymphNode(Boolean status) {
         this.reachedLymphNode = status;
     }
+
+    ArrayList<Location> path = new ArrayList<>();
 
     @Override
     protected void setup() {
@@ -89,11 +91,14 @@ public class DendriticCellAgent extends Agent {
                     message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
                     message.setContent(questionForCell);
                     send(message);
+                    doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        setPossiblePlacesToMove(locations);
+                        if (locations.size() >= 0) {
+                            setPossiblePlacesToMove(locations);
+                        }
                     }
                 } catch (ControllerException | UnreadableException ignored) {
                 }
@@ -127,7 +132,7 @@ public class DendriticCellAgent extends Agent {
                     send(messageToCell);
                 } catch (ControllerException ignored) {
                 }
-                doWait(200);
+                doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
                 ACLMessage messageFromCell = receive(messageTemplate);
                 if (messageFromCell != null) {
@@ -187,7 +192,7 @@ public class DendriticCellAgent extends Agent {
                 message.setContent(questionForCell);
                 send(message);
                 Boolean replyReceived = false;
-
+                doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
                 while (!replyReceived) {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
@@ -196,7 +201,7 @@ public class DendriticCellAgent extends Agent {
                         Boolean status = Boolean.parseBoolean(receivedMessage.getContent());
                         if (status) {
                             setReachedVessel(status);
-                            myAgent.addBehaviour(new ContactVesselInCell());
+                            myAgent.addBehaviour(new AskingVesselIfLymphNode());
                         } else {
                             myAgent.addBehaviour(new MovingToNewCell());
                         }
@@ -217,12 +222,53 @@ public class DendriticCellAgent extends Agent {
                 Random rand = new Random();
                 Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
                 if (!locationToMove.equals(currentLocation)) {
-                    doWait(500);
+                    doWait(Constants.DENDRITIC_CELL_SLEEP_TIME);
                     doMove(locationToMove);
                 }
             }
             myAgent.addBehaviour(new AskCellForNeighbours());
         }
+    }
+
+    private class AskingVesselIfLymphNode extends OneShotBehaviour {
+
+        String conversationID = "lymph_node_verification_channel";
+        String query = "tell_if_lymph_node";
+
+        @Override
+        public void action() {
+
+            try {
+                String targetVessel = "lymphVessel.".concat(myAgent.getContainerController().getContainerName());
+                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                message.setConversationId(conversationID);
+                message.addReceiver(new AID(targetVessel, AID.ISLOCALNAME));
+                message.setContent(query);
+                myAgent.send(message);
+
+                Boolean gotReply = false;
+                while (!gotReply) {
+                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
+                    ACLMessage receivedMessage = receive(reply);
+
+                    if (receivedMessage != null) {
+                        Boolean lymphNode = (Boolean) receivedMessage.getContentObject();
+                        /* System.out.println(lymphNode); */
+                        if (!lymphNode) {
+                            myAgent.addBehaviour(new ContactVesselInCell());
+                        } else {
+                            setReachedLymphNode(true);
+                            addBehaviour(new CommunicateWithCD4TCellManager());
+                        }
+                        gotReply = true;
+                        break;
+                    }
+                }
+
+            } catch (ControllerException | UnreadableException ignored) {
+            }
+        }
+
     }
 
     private class ContactVesselInCell extends OneShotBehaviour {
@@ -250,8 +296,6 @@ public class DendriticCellAgent extends Agent {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
                         if (locations.size() > 0) {
                             setPossiblePlacesToMove(locations);
-                        } else {
-                            setReachedLymphNode(true);
                         }
                         gotReply = true;
                         break;
@@ -274,12 +318,26 @@ public class DendriticCellAgent extends Agent {
                 Random rand = new Random();
                 Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
                 if (!locationToMove.equals(currentLocation)) {
-                    doWait(500);
+                    doWait(Constants.DENDRITIC_VESSEL_SLEEP_TIME);
+                    path.add(locationToMove);
                     doMove(locationToMove);
                 }
             }
-            myAgent.addBehaviour(new ContactVesselInCell());
+            myAgent.addBehaviour(new AskingVesselIfLymphNode());
         }
 
     }
+
+    private class CommunicateWithCD4TCellManager extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+
+            System.out.println("contacting manager");
+            System.out.println(path);
+
+        }
+
+    }
+
 }

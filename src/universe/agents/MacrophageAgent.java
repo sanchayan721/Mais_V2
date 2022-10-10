@@ -75,7 +75,9 @@ public class MacrophageAgent extends Agent {
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        setPossiblePlacesToMove(locations);
+                        if (locations.size() >= 0) {
+                            setPossiblePlacesToMove(locations);
+                        }
                     }
                 } catch (ControllerException | UnreadableException ignored) {
                 }

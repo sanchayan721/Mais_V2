@@ -28,10 +28,10 @@ public class LymphVesselAgent extends Agent {
         this.stepTowardsLymphNode = nextLocations;
     }
 
-    Boolean isEndVessel = false;
+    Boolean isLymphNodeVessel = false;
 
-    public void setIsEndVessel(Boolean statement) {
-        this.isEndVessel = statement;
+    public void setIsLymphNodeVessel(Boolean statement) {
+        this.isLymphNodeVessel = statement;
     }
 
     @Override
@@ -39,6 +39,7 @@ public class LymphVesselAgent extends Agent {
         addBehaviour(new SendingOwnLocationToInitiator());
         addBehaviour(new SettingNextVeselLocations());
 
+        addBehaviour(new TellIfIamLymphNode());
         addBehaviour(new TellNextLocationToDendriticCell());
     }
 
@@ -48,7 +49,7 @@ public class LymphVesselAgent extends Agent {
 
         @Override
         public void action() {
-            if (stepTowardsLymphNode.size() > 0 || isEndVessel) {
+            if (stepTowardsLymphNode.size() > 0 || isLymphNodeVessel) {
                 myAgent.removeBehaviour(this);
             } else {
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
@@ -79,7 +80,7 @@ public class LymphVesselAgent extends Agent {
 
         @Override
         public void action() {
-            if (stepTowardsLymphNode.size() > 0 || isEndVessel) {
+            if (stepTowardsLymphNode.size() > 0 || isLymphNodeVessel) {
                 myAgent.removeBehaviour(this);
             } else {
                 try {
@@ -89,7 +90,7 @@ public class LymphVesselAgent extends Agent {
                         ArrayList<Location> nextVesselLocations = (ArrayList<Location>) messageReceived
                                 .getContentObject();
                         if (nextVesselLocations.size() == 0) {
-                            setIsEndVessel(true);
+                            setIsLymphNodeVessel(true);
                         } else {
                             setStepTowardsLymphNode(nextVesselLocations);
                         }
@@ -102,13 +103,40 @@ public class LymphVesselAgent extends Agent {
 
     }
 
+    private class TellIfIamLymphNode extends CyclicBehaviour {
+        String conversationID = "lymph_node_verification_channel";
+        String query = "tell_if_lymph_node";
+
+        @Override
+        public void action() {
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage message = receive(messageTemplate);
+            if (message != null) {
+                String messageContent = message.getContent();
+                if (messageContent.equals(query)) {
+                    try {
+                        ACLMessage reply = message.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setSender(message.getSender());
+                        reply.setConversationId(conversationID);
+                        reply.setContentObject(isLymphNodeVessel);
+                        System.out.println(isLymphNodeVessel);
+                        send(reply);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
     private class TellNextLocationToDendriticCell extends CyclicBehaviour {
         String conversationID = "Vessel_Dendritic_Communication_Channel";
         String query = "give_me_next_vessel";
 
         @Override
         public void action() {
-            if (!isEndVessel) {
+            if (!isLymphNodeVessel) {
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                 ACLMessage message = receive(messageTemplate);
                 if (message != null) {

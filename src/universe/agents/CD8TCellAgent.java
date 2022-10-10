@@ -56,7 +56,9 @@ public class CD8TCellAgent extends Agent {
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        setPossiblePlacesToMove(locations);
+                        if (possiblePlacesToMove.size() >= 0) {
+                            setPossiblePlacesToMove(locations);
+                        }
                     }
                 } catch (ControllerException | UnreadableException ignored) {
                 }
@@ -83,7 +85,7 @@ public class CD8TCellAgent extends Agent {
                     send(messageToCell);
                 } catch (ControllerException ignored) {
                 }
-                doWait(Constants.MACROPHAGE_CELL_COMMUNICATION_TIME);
+                doWait(Constants.CD8T_CELL_COMMUNICATION_TIME);
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId("Signature_Verification_Channel");
                 ACLMessage messageFromCell = receive(messageTemplate);
                 if (messageFromCell != null) {
@@ -114,7 +116,7 @@ public class CD8TCellAgent extends Agent {
 
                 if (Arrays.equals(differences, virus_signature)) {
                     try {
-                        killTheCellAndVirus(myAgent);
+                        killTheVirus(myAgent);
                         myAgent.addBehaviour(new MovingToNewCell());
                     } catch (ControllerException blocked) {
                     }
@@ -123,18 +125,21 @@ public class CD8TCellAgent extends Agent {
             myAgent.addBehaviour(new MovingToNewCell());
         }
 
-        protected void killTheCellAndVirus(Agent mAgent) throws ControllerException {
+        protected void killTheVirus(Agent mAgent) throws ControllerException {
 
             ContainerController currentContainerController = mAgent.getContainerController();
             String currentContainerName = currentContainerController.getContainerName();
             String targetContaminant = "virus.".concat(currentContainerName);
-            String targetCell = "cell.".concat(currentContainerName);
 
             AgentController targetContaminantController = currentContainerController.getAgent(targetContaminant);
-            targetContaminantController.kill();
-
-            AgentController targetCellController = currentContainerController.getAgent(targetCell);
-            targetCellController.kill();
+            /* targetContaminantController.kill();
+            System.out.println(Constants.ANSI_GREEN +
+                    "CD8T" +
+                    Constants.ANSI_RESET +
+                    ": \tKilled " +
+                    Constants.ANSI_RED +
+                    "virus" +
+                    Constants.ANSI_RESET); */
         }
     }
 
@@ -146,7 +151,7 @@ public class CD8TCellAgent extends Agent {
                 Random rand = new Random();
                 Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
                 if (!locationToMove.equals(currentLocation)) {
-                    doWait(Constants.MACROPHAGE_SLEEP_TIME);
+                    doWait(Constants.CD8T_CELL_SLEEP_TIME);
                     doMove(locationToMove);
                 }
             }
