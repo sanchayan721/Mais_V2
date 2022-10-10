@@ -2,7 +2,6 @@ package universe.agents;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.ContainerID;
 import jade.core.Location;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;

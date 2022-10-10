@@ -17,6 +17,8 @@ public class Constants {
     public static final int CELL_MUTATION_PERIOD = 5000 * SIMULATION_TIME_SCALE; //Seconds
     public static final int CELL_REGENERATION_TIME_AVG = 4000 * SIMULATION_TIME_SCALE;
     
+    /* CD48TCell Manager Constants */
+    public static final int TIME_TO_FIND_A_MATCHING_NAIEVE_CD4TCELL = 5000 * SIMULATION_TIME_SCALE; //Seconds
 
     /* Amount of Macrophage; A percentage of total number of cells */
     public static final int PERCENTAGE_OF_MACROPHAGE = 30;

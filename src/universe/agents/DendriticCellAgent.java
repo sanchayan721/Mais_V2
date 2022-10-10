@@ -330,11 +330,37 @@ public class DendriticCellAgent extends Agent {
 
     private class CommunicateWithCD4TCellManager extends OneShotBehaviour {
 
+        String conversationID = "dendritic_cell_c4t_communication_channel";
+
         @Override
         public void action() {
 
             System.out.println("contacting manager");
-            System.out.println(path);
+
+            try {
+                String cd4TManagerName = "CD4TCellManager";
+                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                message.setConversationId(conversationID);
+                message.addReceiver(new AID(cd4TManagerName, AID.ISLOCALNAME));
+                message.setContentObject(VIRUS_IDENTIFYING_CODON);
+                send(message);
+                Boolean replyReceived = false;
+                doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
+                while (!replyReceived) {
+                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
+                    ACLMessage receivedMessage = receive(reply);
+                    if (receivedMessage != null) {
+                        replyReceived = true;
+                        Boolean status = Boolean.parseBoolean(receivedMessage.getContent());
+                        if (status) {
+                            setReachedVessel(status);
+                            myAgent.addBehaviour(new AskingVesselIfLymphNode());
+                        } else {
+                            myAgent.addBehaviour(new MovingToNewCell());
+                        }
+                    }
+                }
+            } catch (Exception e) {}
 
         }
 

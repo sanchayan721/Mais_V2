@@ -53,4 +53,17 @@ public class MainContainer {
             exception.printStackTrace();
         }
     }
+
+    public void createCD4TCellManager(ContainerController containerController) {
+        try {
+            String agentName = "CD4TCellManager";
+            AgentController CD4TCellManagerController = containerController.createNewAgent(
+                    agentName, "universe.agents.CD4TCellManager", new Object[] { });
+
+            CD4TCellManagerController.start();
+
+        } catch (StaleProxyException exception) {
+            exception.printStackTrace();
+        }
+    }
 }
