@@ -19,13 +19,17 @@ import java.util.Random;
 
 public class MacrophageAgent extends Agent {
 
-    private int[] cellDNAToBeVerified = new int[]{};
+    private int[] cellDNAToBeVerified = new int[] {};
 
     ArrayList<Location> possiblePlacesToMove = new ArrayList<>();
 
     private void setPossiblePlacesToMove(ArrayList<Location> locs) {
         this.possiblePlacesToMove = locs;
     }
+
+    int number_of_virus_killed = 0;
+
+    Boolean stimulated = false;
 
     @Override
     protected void setup() {
@@ -113,7 +117,7 @@ public class MacrophageAgent extends Agent {
                     } catch (UnreadableException blocked) {
                     }
                 }
-            } 
+            }
             myAgent.addBehaviour(new DetectingAndKillingVirus());
         }
     }
@@ -127,7 +131,7 @@ public class MacrophageAgent extends Agent {
                 repairDNA();
                 killTheVirus(myAgent);
             }
-            myAgent.addBehaviour(new MovingToNewCell());
+            myAgent.addBehaviour(new CheckIfQuotaComplete());
         }
 
     }
@@ -137,6 +141,7 @@ public class MacrophageAgent extends Agent {
             String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
             ContainerController thisContainer = myAgent.getContainerController();
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
+            number_of_virus_killed++;
             /* virusAgentController.kill(); */
             /*
              * System.out
@@ -164,6 +169,20 @@ public class MacrophageAgent extends Agent {
         }
     }
 
+    private class CheckIfQuotaComplete extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            if (number_of_virus_killed <= Constants.NUMBER_OF_VIRUS_MACROPHAGE_CAN_KILL || stimulated) {
+                addBehaviour(new MovingToNewCell());
+            } else {
+                addBehaviour(new TellCellIamExhausted());
+                addBehaviour(new WaitingForStimulation());
+            }
+        }
+
+    }
+
     private class MovingToNewCell extends OneShotBehaviour {
         @Override
         public void action() {
@@ -178,6 +197,60 @@ public class MacrophageAgent extends Agent {
             }
             myAgent.addBehaviour(new AskCellForNeighbours());
         }
+    }
+
+    private class TellCellIamExhausted extends OneShotBehaviour {
+
+        String conversationID = "exhausted_macrophage_cell_connection_channel";
+        String query = "i_am_exhausted";
+
+        @Override
+        public void action() {
+            try {
+                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                message.setConversationId(conversationID);
+                String targetCell = "cell."
+                        .concat(String.valueOf(myAgent.getContainerController().getContainerName()));
+                        message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
+                        message.setContent(query);
+                        send(message);
+            } catch (ControllerException e) {
+            }
+        }
+
+    }
+
+    private class WaitingForStimulation extends OneShotBehaviour {
+
+        String conversationID = "cd4t_macrophage_communication_channel";
+        String instruction = "stimulate_macrophage";
+
+        @Override
+        public void action() {
+
+            Boolean messageReceivedFromCD4T = false;
+
+            while (!messageReceivedFromCD4T) {
+                MessageTemplate mTemplate = MessageTemplate.MatchConversationId(conversationID);
+                ACLMessage message = receive(mTemplate);
+
+                if (message != null) {
+                    try {
+                        messageReceivedFromCD4T = true;
+                        String messageContent = message.getContent();
+
+                        if (messageContent == instruction) {
+                            stimulated = true;
+                        }
+
+                    } catch (Exception e) {
+                    }
+                }
+            }
+
+            addBehaviour(new MovingToNewCell());
+        }
+
     }
 
 }

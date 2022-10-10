@@ -1,8 +1,10 @@
 package universe.agents;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Location;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -10,6 +12,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import universe.helper.CellMacrophageInformation;
 import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
@@ -47,6 +50,9 @@ public class CellAgent extends Agent {
         this.ifLymphVesselPresent = status;
     }
 
+    Boolean exhaustedMacrophagePresent = false;
+    AID exhaustedMacrophageAID = new AID();
+
     /* Setup method */
     @Override
     protected void setup() {
@@ -61,6 +67,8 @@ public class CellAgent extends Agent {
         addBehaviour(new TellNeighboursLocation());
         addBehaviour(new ListenToVirus());
         addBehaviour(new SpawningVirus());
+        addBehaviour(new SettingExhaustedMacrophagePresence());
+        addBehaviour(new TellingCD4TCellAboutExhaustedMacrophage());
         addBehaviour(new DNARepairBehaviour());
     }
 
@@ -294,12 +302,12 @@ public class CellAgent extends Agent {
         public void action() {
             if (CELL_STATE) {
                 String conversationID = "Spwan_A_New_Virus_Channel";
-    
+
                 MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                 ACLMessage msg = receive(messageTemplate);
-    
+
                 if (msg != null) {
-    
+
                     try {
                         if (!isVirusAlreadyPresent()) {
                             VirusInformation virusInformation = (VirusInformation) msg.getContentObject();
@@ -340,6 +348,84 @@ public class CellAgent extends Agent {
 
             virusAgentController.start();
         }
+    }
+
+    private class SettingExhaustedMacrophagePresence extends CyclicBehaviour {
+
+        String conversationID = "exhausted_macrophage_cell_connection_channel";
+        String query = "i_am_exhausted";
+
+        @Override
+        public void action() {
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage messageReceived = myAgent.receive(messageTemplate);
+
+            if (messageReceived != null) {
+
+                String messageContent = messageReceived.getContent();
+
+                if (messageContent == query) {
+                    exhaustedMacrophagePresent = true;
+                    exhaustedMacrophageAID = messageReceived.getSender();
+                }
+            }
+        }
+    }
+
+    private class TellingCD4TCellAboutExhaustedMacrophage extends CyclicBehaviour {
+
+        String conversationID = "asking_cell_exhausted_macrophage_connection_channel";
+        String query = "is_there_exhausted_macrophage";
+
+        @Override
+        public void action() {
+
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage messageReceived = myAgent.receive(messageTemplate);
+
+            if (messageReceived != null) {
+                String messageContent = messageReceived.getContent();
+                try {
+                    if (messageContent == query) {
+                        CellMacrophageInformation information = new CellMacrophageInformation(
+                                exhaustedMacrophagePresent,
+                                exhaustedMacrophageAID);
+                        ACLMessage reply = messageReceived.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setSender(messageReceived.getSender());
+                        reply.setConversationId(conversationID);
+                        reply.setContentObject(information);
+                    }
+                } catch (Exception e) {
+                }
+            }
+
+        }
+
+    }
+
+    private class ListeningAboutMacrophageStimulationFromCD4T extends CyclicBehaviour {
+
+        String conversationID = "telling_cell_macrophage_channel_cd4t";
+        String query = "macrophage_is_stimulated";
+
+        @Override
+        public void action() {
+            MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
+            ACLMessage messageReceived = myAgent.receive(messageTemplate);
+
+            if (messageReceived != null) {
+                String messageContent = messageReceived.getContent();
+                try {
+                    if (messageContent == query) {
+                        exhaustedMacrophagePresent = false;
+                        exhaustedMacrophageAID = null;
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
+        
     }
 
     private void updateDNA(int[] flipLocations) {

@@ -22,6 +22,7 @@ public class Constants {
 
     /* Amount of Macrophage; A percentage of total number of cells */
     public static final int PERCENTAGE_OF_MACROPHAGE = 30;
+    public static final int NUMBER_OF_VIRUS_MACROPHAGE_CAN_KILL = 5;
 
     /* Amount of CD4TCell; A percentage of total number of cells */
     public static final int PERCENTAGE_OF_CD4TCell = 30;

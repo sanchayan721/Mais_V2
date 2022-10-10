@@ -105,14 +105,14 @@ public class Universe {
         mainContainer.createCD4TCellManager(mainContainerController, UNIVERSE_SIZE);
 
         // Create Macrophage Agents Main Container
-        /* for (int i = 0; i < UNIVERSE_SIZE * Constants.PERCENTAGE_OF_MACROPHAGE / 100; i++) {
+        for (int i = 0; i < UNIVERSE_SIZE * Constants.PERCENTAGE_OF_MACROPHAGE / 100; i++) {
 
             int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
             ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP
                     .get("Container-".concat(String.valueOf(randInt)));
             mainContainer.createMacrophageAgent(mainContainerController, i, iContainerController);
 
-        } */
+        }
 
         // Creating Virus Agents on Random Containers
 
