@@ -23,6 +23,11 @@ public class Constants {
     /* Amount of Macrophage; A percentage of total number of cells */
     public static final int PERCENTAGE_OF_MACROPHAGE = 30;
 
+    /* Amount of CD4TCell; A percentage of total number of cells */
+    public static final int PERCENTAGE_OF_CD4TCell = 30;
+    public static final int CD4TCell_ACTIVATION_TIME = 5000 * SIMULATION_TIME_SCALE; //Seconds
+    public static final int CD4TCell_SLEEP_TIME = 1000 * SIMULATION_TIME_SCALE; //Seconds
+
     /* Amount of Dendritic Cells; A percentage of total number of cells */
     public static final int PERCENTAGE_OF_DENDRITIC_CELLS = 20;
 

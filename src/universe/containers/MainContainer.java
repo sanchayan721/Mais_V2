@@ -54,11 +54,11 @@ public class MainContainer {
         }
     }
 
-    public void createCD4TCellManager(ContainerController containerController) {
+    public void createCD4TCellManager(ContainerController containerController, int UNIVERSE_SIZE) {
         try {
             String agentName = "CD4TCellManager";
             AgentController CD4TCellManagerController = containerController.createNewAgent(
-                    agentName, "universe.agents.CD4TCellManager", new Object[] { });
+                    agentName, "universe.agents.CD4TCellManager", new Object[] { UNIVERSE_SIZE });
 
             CD4TCellManagerController.start();
 

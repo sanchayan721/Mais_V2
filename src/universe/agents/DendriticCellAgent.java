@@ -9,6 +9,7 @@ import jade.core.Location;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import universe.containers.AuxiliaryContainer;
+import universe.helper.DendriticCellInformation;
 import universe.laws.Constants;
 import jade.core.AID;
 import jade.lang.acl.MessageTemplate;
@@ -201,6 +202,7 @@ public class DendriticCellAgent extends Agent {
                         Boolean status = Boolean.parseBoolean(receivedMessage.getContent());
                         if (status) {
                             setReachedVessel(status);
+                            path.add(myAgent.here());
                             myAgent.addBehaviour(new AskingVesselIfLymphNode());
                         } else {
                             myAgent.addBehaviour(new MovingToNewCell());
@@ -335,32 +337,17 @@ public class DendriticCellAgent extends Agent {
         @Override
         public void action() {
 
-            System.out.println("contacting manager");
-
             try {
                 String cd4TManagerName = "CD4TCellManager";
                 ACLMessage message = new ACLMessage(ACLMessage.INFORM);
                 message.setConversationId(conversationID);
                 message.addReceiver(new AID(cd4TManagerName, AID.ISLOCALNAME));
-                message.setContentObject(VIRUS_IDENTIFYING_CODON);
+                DendriticCellInformation information = new DendriticCellInformation(VIRUS_IDENTIFYING_CODON, path);
+                message.setContentObject(information);
                 send(message);
-                Boolean replyReceived = false;
-                doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
-                while (!replyReceived) {
-                    MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
-                    ACLMessage receivedMessage = receive(reply);
-                    if (receivedMessage != null) {
-                        replyReceived = true;
-                        Boolean status = Boolean.parseBoolean(receivedMessage.getContent());
-                        if (status) {
-                            setReachedVessel(status);
-                            myAgent.addBehaviour(new AskingVesselIfLymphNode());
-                        } else {
-                            myAgent.addBehaviour(new MovingToNewCell());
-                        }
-                    }
-                }
-            } catch (Exception e) {}
+
+            } catch (Exception e) {
+            }
 
         }
 

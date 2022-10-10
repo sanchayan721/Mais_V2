@@ -102,17 +102,17 @@ public class Universe {
                 LYMPH_COORDINATE_MAP);
 
         /* Creating CD4TCell Manager Agent */
-        //mainContainer.createCD4TCellManager(mainContainerController);
+        mainContainer.createCD4TCellManager(mainContainerController, UNIVERSE_SIZE);
 
         // Create Macrophage Agents Main Container
-        for (int i = 0; i < UNIVERSE_SIZE * Constants.PERCENTAGE_OF_MACROPHAGE / 100; i++) {
+        /* for (int i = 0; i < UNIVERSE_SIZE * Constants.PERCENTAGE_OF_MACROPHAGE / 100; i++) {
 
             int randInt = (int) (Math.random() * (UNIVERSE_SIZE));
             ContainerController iContainerController = CONTAINER_CONTROLLER_HASH_MAP
                     .get("Container-".concat(String.valueOf(randInt)));
             mainContainer.createMacrophageAgent(mainContainerController, i, iContainerController);
 
-        }
+        } */
 
         // Creating Virus Agents on Random Containers
 
@@ -128,7 +128,7 @@ public class Universe {
         virusGenerator.activateVirus();
 
         /* Creating CD8TCells */
-        int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
+        /* int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
         int numberOfTCellsWithSignature = totalAvailableCD8TCells * IMMUNITY_STRENGTH_PERCENTAGE / 100;
 
         Set<Integer> uniqueSetOfContainers = new HashSet<>();
@@ -157,7 +157,7 @@ public class Universe {
                         cd8Counter);
             }
             cd8Counter++;
-        }
+        } */
     }
 
     /* Stopping the simulation */
