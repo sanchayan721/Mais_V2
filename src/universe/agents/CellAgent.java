@@ -4,7 +4,6 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Location;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -12,13 +11,13 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import universe.helper.ArrLocSerializable;
 import universe.helper.CellMacrophageInformation;
 import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class CellAgent extends Agent {
 
@@ -149,9 +148,10 @@ public class CellAgent extends Agent {
                     MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage messageReceived = myAgent.receive(messageTemplate);
                     if (messageReceived != null) {
-                        ArrayList<Location> neighbourLocation = (ArrayList<Location>) messageReceived
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) messageReceived
                                 .getContentObject();
-                        setNeighboursLocations(neighbourLocation);
+                        setNeighboursLocations(serializable.locationArray);
                     }
                 } catch (UnreadableException | ControllerException ignored) {
                 }

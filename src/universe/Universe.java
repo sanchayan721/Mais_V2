@@ -88,12 +88,6 @@ public class Universe {
             auxiliaryContainer.createLymphVessel(lymphVesselContainerController);
         }
 
-        /* Create Dendritic Cell(s) */
-        int randomInt = (int) (Math.random() * (UNIVERSE_SIZE));
-        ContainerController randContainerController = CONTAINER_CONTROLLER_HASH_MAP
-                .get("Container-".concat(String.valueOf(randomInt)));
-        auxiliaryContainer.createDendriticCell(randContainerController, 0);
-
         // Initiator Agent
         mainContainer.createInitiatorAgent(
                 mainContainerController,
@@ -101,6 +95,12 @@ public class Universe {
                 LYMPH_PATH_MAP,
                 LYMPH_COORDINATE_MAP);
 
+        /* Create Dendritic Cell(s) */
+        int randomInt = (int) (Math.random() * (UNIVERSE_SIZE));
+        ContainerController randContainerController = CONTAINER_CONTROLLER_HASH_MAP
+                .get("Container-".concat(String.valueOf(randomInt)));
+        auxiliaryContainer.createDendriticCell(randContainerController, 0);
+        
         /* Creating CD4TCell Manager Agent */
         mainContainer.createCD4TCellManager(mainContainerController, UNIVERSE_SIZE);
 
@@ -128,7 +128,7 @@ public class Universe {
         virusGenerator.activateVirus();
 
         /* Creating CD8TCells */
-        /* int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
+        int totalAvailableCD8TCells = UNIVERSE_SIZE * Constants.PERCENTAGE_OF_CD8T_CELLS / 100;
         int numberOfTCellsWithSignature = totalAvailableCD8TCells * IMMUNITY_STRENGTH_PERCENTAGE / 100;
 
         Set<Integer> uniqueSetOfContainers = new HashSet<>();
@@ -157,7 +157,7 @@ public class Universe {
                         cd8Counter);
             }
             cd8Counter++;
-        } */
+        }
     }
 
     /* Stopping the simulation */

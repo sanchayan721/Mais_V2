@@ -11,6 +11,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
+import universe.helper.ArrLocSerializable;
 import universe.laws.Constants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +55,10 @@ public class CD8TCellAgent extends Agent {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
-                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                        ArrayList<Location> locations = serializable.locationArray;
+                        
                         if (possiblePlacesToMove.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }
@@ -131,14 +135,14 @@ public class CD8TCellAgent extends Agent {
             String targetContaminant = "virus.".concat(currentContainerName);
 
             AgentController targetContaminantController = currentContainerController.getAgent(targetContaminant);
-            /* targetContaminantController.kill();
+            targetContaminantController.kill();
             System.out.println(Constants.ANSI_GREEN +
                     "CD8T" +
                     Constants.ANSI_RESET +
                     ": \tKilled " +
                     Constants.ANSI_RED +
                     "virus" +
-                    Constants.ANSI_RESET); */
+                    Constants.ANSI_RESET);
         }
     }
 

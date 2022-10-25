@@ -12,6 +12,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
+import universe.helper.ArrLocSerializable;
 import universe.laws.Constants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +79,10 @@ public class MacrophageAgent extends Agent {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
-                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                        ArrayList<Location> locations = serializable.locationArray;
+                        
                         if (locations.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }
@@ -142,7 +146,7 @@ public class MacrophageAgent extends Agent {
             ContainerController thisContainer = myAgent.getContainerController();
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
             number_of_virus_killed++;
-            /* virusAgentController.kill(); */
+            virusAgentController.kill();
             /*
              * System.out
              * .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED +

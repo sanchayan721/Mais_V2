@@ -9,6 +9,7 @@ import jade.core.Location;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import universe.containers.AuxiliaryContainer;
+import universe.helper.ArrLocSerializable;
 import universe.helper.DendriticCellInformation;
 import universe.laws.Constants;
 import jade.core.AID;
@@ -96,7 +97,10 @@ public class DendriticCellAgent extends Agent {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
-                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                        ArrayList<Location> locations = serializable.locationArray;
+
                         if (locations.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }
@@ -295,7 +299,10 @@ public class DendriticCellAgent extends Agent {
                     ACLMessage receivedMessage = receive(reply);
 
                     if (receivedMessage != null) {
-                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject(); 
+                        ArrayList<Location> locations = serializable.locationArray;
+                        
                         if (locations.size() > 0) {
                             setPossiblePlacesToMove(locations);
                         }

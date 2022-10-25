@@ -8,6 +8,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.*;
+import universe.helper.ArrLocSerializable;
 import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static universe.laws.Constants.*;
 
 public class VirusAgent extends Agent {
 
@@ -100,7 +100,10 @@ public class VirusAgent extends Agent {
                 MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                 ACLMessage receivedMessage = receive(reply);
                 if (receivedMessage != null) {
-                    ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                    ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                    ArrayList<Location> locations = serializable.locationArray;
+                    
                     setPossiblePlacesToMove(locations);
                     myAgent.addBehaviour(new CloningBehaviour());
                 }

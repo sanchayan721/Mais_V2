@@ -13,6 +13,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
+import universe.helper.ArrLocSerializable;
 import universe.helper.CellMacrophageInformation;
 import universe.laws.Constants;
 
@@ -131,8 +132,12 @@ public class CD4TCellAgent extends Agent {
                     doWait(Constants.DENDRITIC_CELL_COMMUNICATION_TIME);
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
+                    
                     if (receivedMessage != null) {
-                        ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
+
+                        ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                        ArrayList<Location> locations = serializable.locationArray;
+
                         if (locations.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }

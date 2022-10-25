@@ -11,6 +11,7 @@ import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
+import universe.helper.ArrLocSerializable;
 import universe.laws.LymphMap;
 import universe.laws.Movement;
 
@@ -124,7 +125,9 @@ public class InitiatorAgent extends Agent {
                     ACLMessage message = new ACLMessage(ACLMessage.INFORM);
                     message.setConversationId(conversationID);
                     message.addReceiver(agentID);
-                    message.setContentObject(neighboursLocation);
+
+                    ArrLocSerializable arrayListLocation = new ArrLocSerializable(neighboursLocation);
+                    message.setContentObject(arrayListLocation);
                     myAgent.send(message);
 
                 } catch (ControllerException | IOException e) {
