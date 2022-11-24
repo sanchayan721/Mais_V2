@@ -89,8 +89,10 @@ public class LymphVesselAgent extends Agent {
                     ACLMessage messageReceived = myAgent.receive(messageTemplate);
                     if (messageReceived != null) {
 
-                        ArrLocSerializable serializable = (ArrLocSerializable) messageReceived.getContentObject();
-                        ArrayList<Location> nextVesselLocations = serializable.locationArray;
+                        //ArrLocSerializable serializable = (ArrLocSerializable) messageReceived.getContentObject();
+                        //ArrayList<Location> nextVesselLocations = serializable.locationArray;
+                        
+                        ArrayList<Location> nextVesselLocations = (ArrayList<Location>) messageReceived.getContentObject();
                         
                         if (nextVesselLocations.size() == 0) {
                             setIsLymphNodeVessel(true);

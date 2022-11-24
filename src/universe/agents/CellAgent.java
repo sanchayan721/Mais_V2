@@ -149,9 +149,10 @@ public class CellAgent extends Agent {
                     ACLMessage messageReceived = myAgent.receive(messageTemplate);
                     if (messageReceived != null) {
 
-                        ArrLocSerializable serializable = (ArrLocSerializable) messageReceived
-                                .getContentObject();
-                        setNeighboursLocations(serializable.locationArray);
+                        ArrayList<Location> nLocations = (ArrayList<Location>) messageReceived.getContentObject();
+                        //ArrLocSerializable serializable = (ArrLocSerializable) messageReceived
+                        //        .getContentObject();
+                        setNeighboursLocations(nLocations);
                     }
                 } catch (UnreadableException | ControllerException ignored) {
                 }

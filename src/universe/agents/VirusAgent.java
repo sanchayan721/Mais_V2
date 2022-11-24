@@ -101,8 +101,9 @@ public class VirusAgent extends Agent {
                 ACLMessage receivedMessage = receive(reply);
                 if (receivedMessage != null) {
 
-                    ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
-                    ArrayList<Location> locations = serializable.locationArray;
+                    //ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
+                    //ArrayList<Location> locations = serializable.locationArray;
+                    ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
                     
                     setPossiblePlacesToMove(locations);
                     myAgent.addBehaviour(new CloningBehaviour());

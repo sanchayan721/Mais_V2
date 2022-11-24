@@ -126,8 +126,8 @@ public class InitiatorAgent extends Agent {
                     message.setConversationId(conversationID);
                     message.addReceiver(agentID);
 
-                    ArrLocSerializable arrayListLocation = new ArrLocSerializable(neighboursLocation);
-                    message.setContentObject(arrayListLocation);
+                    //ArrLocSerializable arrayListLocation = new ArrLocSerializable(neighboursLocation);
+                    message.setContentObject(neighboursLocation);
                     myAgent.send(message);
 
                 } catch (ControllerException | IOException e) {
