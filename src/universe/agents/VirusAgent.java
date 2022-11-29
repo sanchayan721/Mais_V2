@@ -8,14 +8,12 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.*;
-import universe.helper.ArrLocSerializable;
 import universe.helper.VirusInformation;
 import universe.laws.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-
 
 public class VirusAgent extends Agent {
 
@@ -34,7 +32,7 @@ public class VirusAgent extends Agent {
     protected void setup() {
         Object[] arguments = getArguments();
         VirusInformation information = new VirusInformation();
-        
+
         information.virus_signature = (int[]) arguments[0];
         information.virus_replication_factor = (int) arguments[1];
         information.virus_cell_communication_time = (int) arguments[2];
@@ -53,6 +51,7 @@ public class VirusAgent extends Agent {
                 ContainerController currentContainerController = myAgent.getContainerController();
                 String targetCell = "cell.".concat(myAgent.getContainerController().getContainerName());
                 currentContainerController.getAgent(targetCell);
+                System.out.println("CheckingIfCellAliveInContainer");
                 myAgent.addBehaviour(new CommunicateWithCell());
             } catch (ControllerException ignored) {
                 cellPresentInContainer = false;
@@ -78,6 +77,7 @@ public class VirusAgent extends Agent {
                 e.printStackTrace();
             }
             // Send message to Cell About Genetic Modification
+            System.out.println("CommunicateWithCell");
             myAgent.addBehaviour(new AskingCellForNeighbours());
         }
     }
@@ -101,10 +101,8 @@ public class VirusAgent extends Agent {
                 ACLMessage receivedMessage = receive(reply);
                 if (receivedMessage != null) {
 
-                    //ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
-                    //ArrayList<Location> locations = serializable.locationArray;
                     ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                    
+                    System.out.println(locations);
                     setPossiblePlacesToMove(locations);
                     myAgent.addBehaviour(new CloningBehaviour());
                 }
@@ -204,5 +202,19 @@ public class VirusAgent extends Agent {
             } catch (ControllerException ignored) {
             }
         }
+    }
+
+    @Override
+    protected void takeDown() {
+
+        System.out.println(Constants.ANSI_RED +
+                this.getAID().getName() +
+                Constants.ANSI_RESET +
+                ": \tGood bye cruel world! I am " +
+                Constants.ANSI_BRED +
+                "dead" +
+                Constants.ANSI_RESET);
+
+        this.doDelete();
     }
 }

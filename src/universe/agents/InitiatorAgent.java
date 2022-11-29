@@ -11,14 +11,16 @@ import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
-import universe.helper.ArrLocSerializable;
+import jade.wrapper.StaleProxyException;
 import universe.laws.LymphMap;
 import universe.laws.Movement;
+import universe.laws.VirusGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class InitiatorAgent extends Agent {
 
@@ -57,16 +59,48 @@ public class InitiatorAgent extends Agent {
         vesselLocationHashmap.put(vesselName, vesselLocation);
     }
 
+    AgentController dendriticCellController;
+    public void setDendriticCellController(AgentController dendriticCellController) {
+        this.dendriticCellController = dendriticCellController;
+    }
+
+    List<AgentController> CD8CellControllerList;
+    public void setCD8CellControllerList(List<AgentController> CD8CellControllerList) {
+        this.CD8CellControllerList = CD8CellControllerList;
+    }
+
+    List<AgentController> MacrophageControllerList;
+    public void setMacrophageControllerList (List<AgentController> MacrophageControllerList) {
+        this.MacrophageControllerList = MacrophageControllerList;
+    }
+
+    VirusGenerator virusGenerator;
+    public void setVirusGenerator (VirusGenerator virusGenerator) {
+        this.virusGenerator = virusGenerator;
+    }
+
+    Boolean cellOperationsComplete = false;
+    Boolean vesselOperationsComplete = false;
+
     @Override
     public void setup() {
         Object[] arguments = getArguments();
         setContainerControllerGridMap((HashMap<ContainerController, int[]>) arguments[0]);
         setLymphVesselHashMap((HashMap<String, ContainerController>) arguments[1]);
         setLymphVesselCoordinateMap((HashMap<String, int[]>) arguments[2]);
+        setDendriticCellController((AgentController) arguments[3]);
+        setCD8CellControllerList((List<AgentController>) arguments[4]);
+        setMacrophageControllerList((List<AgentController>) arguments[5]);
+        setVirusGenerator((VirusGenerator) arguments[6]);
+        
 
         /* Adding the behaviours */
         addBehaviour(new InitiatingCell());
         addBehaviour(new InitializingLymphVessels());
+        addBehaviour(new InitiatingDendriticCell());
+        addBehaviour(new InitiatingCD4Cells());
+        addBehaviour(new InitiatingMacrophage());
+        addBehaviour(new InitiatingVirus());
     }
 
     /* Cell Initializing Behaviours */
@@ -126,7 +160,6 @@ public class InitiatorAgent extends Agent {
                     message.setConversationId(conversationID);
                     message.addReceiver(agentID);
 
-                    //ArrLocSerializable arrayListLocation = new ArrLocSerializable(neighboursLocation);
                     message.setContentObject(neighboursLocation);
                     myAgent.send(message);
 
@@ -135,6 +168,7 @@ public class InitiatorAgent extends Agent {
                 }
             }
             myAgent.addBehaviour(new TellingCellTheyAreVessel());
+            cellOperationsComplete = true;
             myAgent.removeBehaviour(this);
         }
 
@@ -264,6 +298,8 @@ public class InitiatorAgent extends Agent {
                     e.printStackTrace();
                 }
             }
+
+            vesselOperationsComplete = true;
         }
 
         private ArrayList<Location> findNextVessels(String vesselName) {
@@ -292,5 +328,74 @@ public class InitiatorAgent extends Agent {
             return nextVesselLocations;
         }
 
+    }
+
+    private class InitiatingDendriticCell extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            
+            if(cellOperationsComplete && vesselOperationsComplete) {
+                try {
+                    dendriticCellController.start();
+                    myAgent.removeBehaviour(this);
+                } catch (StaleProxyException e) {
+                    e.printStackTrace();
+                }
+            }
+            
+        }
+        
+    }
+
+    private class InitiatingCD4Cells extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            
+            if(cellOperationsComplete && vesselOperationsComplete) {
+                for (AgentController CD8CellController : CD8CellControllerList) {
+                    try {
+                        CD8CellController.start();
+                    } catch (StaleProxyException e) {
+                        e.printStackTrace();
+                    }
+                }
+                myAgent.removeBehaviour(this);
+            }
+            
+        }
+        
+    }
+
+    private class InitiatingMacrophage extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            
+            if(cellOperationsComplete && vesselOperationsComplete) {
+                for (AgentController MacrophageController : MacrophageControllerList) {
+                    try {
+                        MacrophageController.start();
+                    } catch (StaleProxyException e) {
+                        e.printStackTrace();
+                    }
+                }
+                myAgent.removeBehaviour(this);
+            }
+            
+        }
+        
+    }
+
+    private class InitiatingVirus extends CyclicBehaviour {
+
+        @Override
+        public void action () {
+            if(cellOperationsComplete && vesselOperationsComplete) {
+                virusGenerator.activateVirus();
+                myAgent.removeBehaviour(this);
+            }
+        }
     }
 }

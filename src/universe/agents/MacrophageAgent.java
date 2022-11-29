@@ -12,7 +12,6 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
-import universe.helper.ArrLocSerializable;
 import universe.laws.Constants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +33,7 @@ public class MacrophageAgent extends Agent {
 
     @Override
     protected void setup() {
+        System.out.println(this.getAID().getName());
         addBehaviour(new GoingToInitialPosition());
     }
 
@@ -45,8 +45,6 @@ public class MacrophageAgent extends Agent {
             ContainerController initialContainerController = (ContainerController) arguments[0];
             try {
                 doWait(Constants.MACROPHAGE_SLEEP_TIME);
-                // ContainerController destinationContainer =
-                // Universe.CONTAINER_CONTROLLER_HASH_MAP.get("Container-0");
                 try {
                     ContainerID dest = new ContainerID();
                     dest.setName(initialContainerController.getContainerName());
@@ -80,10 +78,8 @@ public class MacrophageAgent extends Agent {
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
 
-                        //ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
-                        //ArrayList<Location> locations = serializable.locationArray;
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        
+
                         if (locations.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }
@@ -148,11 +144,13 @@ public class MacrophageAgent extends Agent {
             AgentController virusAgentController = thisContainer.getAgent(targetVirus);
             number_of_virus_killed++;
             virusAgentController.kill();
-            /*
-             * System.out
-             * .println(ANSI_GREEN + "Macrophage" + ANSI_RESET + ": \tKilled " + ANSI_RED +
-             * "virus" + ANSI_RESET);
-             */
+            System.out.println(Constants.ANSI_CYAN +
+                    this.getAID().getName() +
+                    Constants.ANSI_RESET +
+                    ": \tKilled " +
+                    Constants.ANSI_RED +
+                    "virus" +
+                    Constants.ANSI_RESET);
         } catch (ControllerException e) {
             return;
         }
@@ -216,9 +214,9 @@ public class MacrophageAgent extends Agent {
                 message.setConversationId(conversationID);
                 String targetCell = "cell."
                         .concat(String.valueOf(myAgent.getContainerController().getContainerName()));
-                        message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
-                        message.setContent(query);
-                        send(message);
+                message.addReceiver(new AID(targetCell, AID.ISLOCALNAME));
+                message.setContent(query);
+                send(message);
             } catch (ControllerException e) {
             }
         }

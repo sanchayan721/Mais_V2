@@ -11,7 +11,6 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
-import universe.helper.ArrLocSerializable;
 import universe.helper.CellMacrophageInformation;
 import universe.helper.VirusInformation;
 import universe.laws.Constants;
@@ -49,8 +48,8 @@ public class CellAgent extends Agent {
         this.ifLymphVesselPresent = status;
     }
 
-    Boolean exhaustedMacrophagePresent = false;
-    AID exhaustedMacrophageAID = new AID();
+    private Boolean exhaustedMacrophagePresent = false;
+    private AID exhaustedMacrophageAID = new AID();
 
     /* Setup method */
     @Override
@@ -69,6 +68,7 @@ public class CellAgent extends Agent {
         addBehaviour(new SettingExhaustedMacrophagePresence());
         addBehaviour(new TellingCD4TCellAboutExhaustedMacrophage());
         addBehaviour(new DNARepairBehaviour());
+        addBehaviour(new ListeningAboutMacrophageStimulationFromCD4T());
     }
 
     private class ManageCellStatus extends CyclicBehaviour {
@@ -150,8 +150,6 @@ public class CellAgent extends Agent {
                     if (messageReceived != null) {
 
                         ArrayList<Location> nLocations = (ArrayList<Location>) messageReceived.getContentObject();
-                        //ArrLocSerializable serializable = (ArrLocSerializable) messageReceived
-                        //        .getContentObject();
                         setNeighboursLocations(nLocations);
                     }
                 } catch (UnreadableException | ControllerException ignored) {
@@ -387,7 +385,7 @@ public class CellAgent extends Agent {
             if (messageReceived != null) {
                 String messageContent = messageReceived.getContent();
                 try {
-                    if (messageContent == query) {
+                    if (messageContent.equals(query)) {
                         CellMacrophageInformation information = new CellMacrophageInformation(
                                 exhaustedMacrophagePresent,
                                 exhaustedMacrophageAID);
@@ -396,6 +394,7 @@ public class CellAgent extends Agent {
                         reply.setSender(messageReceived.getSender());
                         reply.setConversationId(conversationID);
                         reply.setContentObject(information);
+                        send(reply);
                     }
                 } catch (Exception e) {
                 }
@@ -426,7 +425,7 @@ public class CellAgent extends Agent {
                 }
             }
         }
-        
+
     }
 
     private void updateDNA(int[] flipLocations) {

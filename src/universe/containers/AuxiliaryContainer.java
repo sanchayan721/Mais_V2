@@ -37,7 +37,7 @@ public class AuxiliaryContainer {
         }
     }
 
-    public void createDendriticCell(ContainerController containerController, int id) {
+    public AgentController createDendriticCell(ContainerController containerController, int id) {
         try {
 
             AgentController dendriticCellController = containerController.createNewAgent(
@@ -45,10 +45,11 @@ public class AuxiliaryContainer {
                     "universe.agents.DendriticCellAgent",
                     new Object[] {});
 
-            dendriticCellController.start();
+            return dendriticCellController;
 
         } catch (Exception exception) {
             exception.getStackTrace();
+            return null;
         }
     }
 
@@ -65,17 +66,18 @@ public class AuxiliaryContainer {
         }
     }
 
-    public void createCD8TCell(ContainerController containerController, int[] virus_signature, int id) {
+    public AgentController createCD8TCell(ContainerController containerController, int[] virus_signature, int id) {
         try {
             AgentController cd8TcellController = containerController.createNewAgent(
                     "cd8TCell-" + Integer.toString(id),
                     "universe.agents.CD8TCellAgent",
                     new Object[] { virus_signature });
 
-            cd8TcellController.start();
+            return cd8TcellController;
 
         } catch (Exception e) {
             e.getStackTrace();
+            return null;
         }
     }
 

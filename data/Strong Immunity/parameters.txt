@@ -1,0 +1,7 @@
+PERCENTAGE_OF_MACROPHAGE = 30
+NUMBER_OF_VIRUS_MACROPHAGE_CAN_KILL = 5
+PERCENTAGE_OF_CD8T_CELLS = 30
+
+immunity_strength_percentage = 80;
+
+pathogens_replication_factor = 3;

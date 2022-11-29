@@ -8,7 +8,6 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import universe.helper.ArrLocSerializable;
 
 public class LymphVesselAgent extends Agent {
 
@@ -88,9 +87,6 @@ public class LymphVesselAgent extends Agent {
                     MessageTemplate messageTemplate = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage messageReceived = myAgent.receive(messageTemplate);
                     if (messageReceived != null) {
-
-                        //ArrLocSerializable serializable = (ArrLocSerializable) messageReceived.getContentObject();
-                        //ArrayList<Location> nextVesselLocations = serializable.locationArray;
                         
                         ArrayList<Location> nextVesselLocations = (ArrayList<Location>) messageReceived.getContentObject();
                         

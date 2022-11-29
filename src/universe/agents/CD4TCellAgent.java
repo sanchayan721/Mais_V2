@@ -13,7 +13,6 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
-import universe.helper.ArrLocSerializable;
 import universe.helper.CellMacrophageInformation;
 import universe.laws.Constants;
 
@@ -77,6 +76,13 @@ public class CD4TCellAgent extends Agent {
 
         @Override
         public void action() {
+            System.out.println(Constants.ANSI_YELLOW +
+                    "CD4T" +
+                    Constants.ANSI_RESET +
+                    ": \tSearching for Exhausted " +
+                    Constants.ANSI_GREEN +
+                    "Macrophages" +
+                    Constants.ANSI_RESET);
             try {
                 ACLMessage message = new ACLMessage(ACLMessage.INFORM);
                 message.setConversationId(conversationID);
@@ -98,9 +104,11 @@ public class CD4TCellAgent extends Agent {
 
                             if (!information.exh_macrophage_present) {
                                 addBehaviour(new AskCellForNeighbours());
+                                // System.out.println("CD4T: --------------- Exhausted Macrophage Absent");
                             } else {
                                 found_macrophage = true;
                                 exMacrophageAID = information.exh_macrophage_aid;
+                                // System.out.println("CD4T: ---------------- Exhausted Macrophage Present");
                                 addBehaviour(new StimulatingMacrophage());
                             }
 
@@ -117,9 +125,9 @@ public class CD4TCellAgent extends Agent {
     private class AskCellForNeighbours extends OneShotBehaviour {
         String conversationID = "Tell_About_Neighbours";
         String questionForCell = "neighbour_list";
-
         @Override
         public void action() {
+            // System.out.println("Moving On....");
             if (AuxiliaryContainer.isCellAlive(myAgent.getContainerController())) {
                 try {
                     ACLMessage message = new ACLMessage(ACLMessage.INFORM);
@@ -134,9 +142,6 @@ public class CD4TCellAgent extends Agent {
                     ACLMessage receivedMessage = receive(reply);
                     
                     if (receivedMessage != null) {
-
-                        //ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
-                        //ArrayList<Location> locations = serializable.locationArray;
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
 
                         if (locations.size() >= 0) {

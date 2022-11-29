@@ -11,7 +11,6 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import universe.containers.AuxiliaryContainer;
-import universe.helper.ArrLocSerializable;
 import universe.laws.Constants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +33,7 @@ public class CD8TCellAgent extends Agent {
         Object[] argumants = getArguments();
         this.virus_signature = (int[]) argumants[0];
 
+        System.out.println(this.getAID().getName());
         addBehaviour(new AskCellForNeighbours());
     }
 
@@ -55,11 +55,8 @@ public class CD8TCellAgent extends Agent {
                     MessageTemplate reply = MessageTemplate.MatchConversationId(conversationID);
                     ACLMessage receivedMessage = receive(reply);
                     if (receivedMessage != null) {
-
-                        //ArrLocSerializable serializable = (ArrLocSerializable) receivedMessage.getContentObject();
-                        //ArrayList<Location> locations = serializable.locationArray;
                         ArrayList<Location> locations = (ArrayList<Location>) receivedMessage.getContentObject();
-                        
+
                         if (possiblePlacesToMove.size() >= 0) {
                             setPossiblePlacesToMove(locations);
                         }
@@ -119,43 +116,41 @@ public class CD8TCellAgent extends Agent {
                 int[] differences = differenceList.stream().mapToInt(i -> i).toArray();
 
                 if (Arrays.equals(differences, virus_signature)) {
-                    try {
-                        killTheVirus(myAgent);
-                        myAgent.addBehaviour(new MovingToNewCell());
-                    } catch (ControllerException blocked) {
-                    }
+                    killTheVirus(myAgent);
+                    myAgent.addBehaviour(new MovingToNewCell());
                 }
             }
             myAgent.addBehaviour(new MovingToNewCell());
         }
 
-        protected void killTheVirus(Agent mAgent) throws ControllerException {
+    }
 
-            ContainerController currentContainerController = mAgent.getContainerController();
-            String currentContainerName = currentContainerController.getContainerName();
-            String targetContaminant = "virus.".concat(currentContainerName);
-
-            AgentController targetContaminantController = currentContainerController.getAgent(targetContaminant);
-            targetContaminantController.kill();
+    protected void killTheVirus(Agent mAgent) {
+        try {
+            String targetVirus = "virus.".concat(String.valueOf(this.getContainerController().getContainerName()));
+            ContainerController thisContainer = mAgent.getContainerController();
+            AgentController virusAgentController = thisContainer.getAgent(targetVirus);
+            virusAgentController.kill();
             System.out.println(Constants.ANSI_GREEN +
-                    "CD8T" +
+                    this.getAID().getName() +
                     Constants.ANSI_RESET +
                     ": \tKilled " +
                     Constants.ANSI_RED +
                     "virus" +
                     Constants.ANSI_RESET);
+        } catch (Exception blocked) {
         }
     }
 
     private class MovingToNewCell extends OneShotBehaviour {
         @Override
         public void action() {
+            doWait(Constants.CD8T_CELL_SLEEP_TIME);
             if (possiblePlacesToMove.size() > 0) {
                 Location currentLocation = myAgent.here();
                 Random rand = new Random();
                 Location locationToMove = possiblePlacesToMove.get(rand.nextInt(possiblePlacesToMove.size()));
                 if (!locationToMove.equals(currentLocation)) {
-                    doWait(Constants.CD8T_CELL_SLEEP_TIME);
                     doMove(locationToMove);
                 }
             }

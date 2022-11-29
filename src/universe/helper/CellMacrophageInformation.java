@@ -12,4 +12,10 @@ public class CellMacrophageInformation implements Serializable{
         this.exh_macrophage_present = exh_macrophage_present;
         this.exh_macrophage_aid = exh_macrophage_aid;
     }
+
+    @Override
+    public String toString() {
+        return "CellMacrophageInformation [exh_macrophage_present=" + exh_macrophage_present + ", exh_macrophage_aid="
+                + exh_macrophage_aid + "]";
+    }
 }
